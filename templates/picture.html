@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block nav %}
+<ul class="nav navbar-nav">
+	<li><a href="/">  <i class="fa fa-home"></i> Home</a></li>
+	<li><a href="profile"> <i class="fa fa-user"></i>   Profile</a></li>
+	<li><a href="code"><i class="fa fa-code"></i> Code</a></li>
+	<li><a href="https://medium.com/@gpj" target="_blank"><i class="fa fa-pencil-square"></i>  Thoughts</a></li>
+	<li class="active"><a href="pictures"><i class="fa fa-picture-o"></i>  Pictures</a></li>
+</ul>
+{% endblock %}
+{% block content %}
+<div class="sub_head orange">
+	<div class="container">
+		<h3><i class="fa fa-picture-o"></i>  Pictures</h3>
+	</div>
+</div>
+<br>
+<p class="container">More available on <a href="https://instagram.com/garethpaul"><i class="fa fa-instagram"></i> Instagram</a></p>
+<article class="container">
+	
+	<div class="photos"></div>
+	
+	<script type="text/javascript">
+	$.getJSON( "instagram", function( data ) {
+		html = ""
+		$.each(data.slice(0,39), function( key, val ) {
+			var img = val.images.standard_resolution.url;
+			html += "<img class='instagram' src='" + img + "'/>";
+		});
+		$('.photos').append(html);
+	});
+	</script>
+
+</article>
+{% endblock %}

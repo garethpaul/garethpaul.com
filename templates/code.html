@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block nav %}
+<ul class="nav navbar-nav">
+	<li><a href="/">  <i class="fa fa-home"></i> Home</a></li>
+	<li><a href="profile"> <i class="fa fa-user"></i>   Profile</a></li>
+	<li class="active"><a href="code"><i class="fa fa-code"></i> Code</a></li>
+	<li><a href="https://medium.com/@gpj" target="_blank"><i class="fa fa-pencil-square"></i>  Thoughts</a></li>
+	<li><a href="pictures"><i class="fa fa-picture-o"></i>  Pictures</a></li>
+</ul>
+{% endblock %}
+{% block content %}
+<div class="sub_head orange">
+	<div class="container">
+		<h3><i class="fa fa-code"></i>  Code</h3>
+	</div>
+</div>
+
+<article class="container">
+	
+	<div>
+		<p>I write a lot of code..</p>
+		<p>Some of it can be found on <a href="https://github.com/garethpaul">Github</a></p>
+	</div>
+
+</article>
+{% endblock %}
