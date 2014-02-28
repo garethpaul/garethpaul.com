@@ -97,3 +97,9 @@ article p{
 	width:300px;
 	height:300px;
 }
+#map-canvas {
+	height: 800px;
+  width:800px;
+	margin: 0px;
+	padding: 0px
+}

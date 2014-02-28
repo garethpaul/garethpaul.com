@@ -3,25 +3,28 @@
 <ul class="nav navbar-nav">
 	<li><a href="/">  <i class="fa fa-home"></i> Home</a></li>
 	<li><a href="profile"> <i class="fa fa-user"></i>   Profile</a></li>
-	<li class="active"><a href="code"><i class="fa fa-code"></i> Code</a></li>
+	<li><a href="code"><i class="fa fa-code"></i> Code</a></li>
 	<li><a href="https://medium.com/@gpj" target="_blank"><i class="fa fa-pencil-square"></i>  Thoughts</a></li>
 	<li><a href="pictures"><i class="fa fa-picture-o"></i>  Pictures</a></li>
-	<li><a href="map"><i class="fa fa-location-arrow"></i>  Location</a></li>
+	<li class="active"><a href="map"><i class="fa fa-location-arrow"></i>  Location</a></li>
 </ul>
 {% endblock %}
 {% block content %}
 <div class="sub_head orange">
 	<div class="container">
-		<h3><i class="fa fa-code"></i>  Code</h3>
+		<h3><i class="fa fa-location-arrow"></i>  Location</h3>
 	</div>
 </div>
 
 <article class="container">
 
-	<div>
-		<p>I write a lot of code..</p>
-		<p>Some of it can be found on <a href="https://github.com/garethpaul">Github</a></p>
-	</div>
-
+<div>
+<p> Approximate location according to Google Glass</p>
+<br>
+</div>
+<div>
+<div id="map-canvas"></div>
+</div>
 </article>
+<script type="text/javascript" src="static/js/map.js"></script>
 {% endblock %}

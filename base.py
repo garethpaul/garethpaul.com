@@ -2,6 +2,7 @@
 
 import webapp2
 import jinja2
+import const
 
 JINJA_ENVIRONMENT = jinja2.Environment(
     loader=jinja2.FileSystemLoader("templates"),
@@ -9,6 +10,7 @@ JINJA_ENVIRONMENT = jinja2.Environment(
     autoescape=True)
 
 class Base(webapp2.RequestHandler):
-	def render(self, name):
-		template = JINJA_ENVIRONMENT.get_template(name + '.html')
-		self.response.write(template.render())
+  def render(self, name):
+    template = JINJA_ENVIRONMENT.get_template(name + '.html')
+    data = {"map_api_key": const.map_api_key}
+    self.response.write(template.render(data))
