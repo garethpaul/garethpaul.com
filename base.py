@@ -12,5 +12,5 @@ JINJA_ENVIRONMENT = jinja2.Environment(
 class Base(webapp2.RequestHandler):
   def render(self, name):
     template = JINJA_ENVIRONMENT.get_template(name + '.html')
-    data = {"map_api_key": const.map_api_key}
+    data = {"map_api_key": const.map_api_key, "glass_url": const.glass_url}
     self.response.write(template.render(data))

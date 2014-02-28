@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block nav %}
+<ul class="nav navbar-nav">
+  <li><a href="/">  <i class="fa fa-home"></i> Home</a></li>
+  <li><a href="profile"> <i class="fa fa-user"></i>   Profile</a></li>
+  <li><a href="code"><i class="fa fa-code"></i> Code</a></li>
+  <li><a href="https://medium.com/@gpj" target="_blank"><i class="fa fa-pencil-square"></i>  Thoughts</a></li>
+  <li><a href="pictures"><i class="fa fa-picture-o"></i>  Pictures</a></li>
+  <li><a href="map"><i class="fa fa-location-arrow"></i>  Location</a></li>
+  <li class="active"><a href="map"><i class="fa fa-eye"></i>  Stream</a></li>
+</ul>
+{% endblock %}
+{% block content %}
+<div class="sub_head orange">
+  <div class="container">
+    <h3><i class="fa fa-eye"></i>  Glass Stream</h3>
+  </div>
+</div>
+<br>
+
+<article class="container">
+  <div class="photos"></div>
+  <script type="text/javascript">
+  $.getJSON( "api/glass", function( data ) {
+    html = ""
+    $.each(data['data'].slice(0,39), function( key, val ) {
+      var img = "{{ glass_url }}/img?token=" + val;
+      html += "<img class='glass' src='" + img + "'/>";
+    });
+    $('.photos').append(html);
+  });
+  </script>
+</article>
+{% endblock %}

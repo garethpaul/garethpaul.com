@@ -6,6 +6,7 @@ import webapp2
 import os
 import map
 import instagram
+import glass
 from base import Base
 
 class MainHandler(Base):
@@ -28,6 +29,10 @@ class CodeHandler(Base):
 	def get(self):
 		self.render("code")
 
+class StreamHandler(Base):
+	def get(self):
+		self.render("stream")
+
 app = webapp2.WSGIApplication([
     ('/', MainHandler),
 		('/profile', ProfileHandler),
@@ -35,5 +40,7 @@ app = webapp2.WSGIApplication([
 	  ('/instagram', instagram.InstagramHandler),
 	  ('/pictures', PictureHandler),
 	  ('/map', MapHandler),
+		('/stream', StreamHandler),
+		('/api/glass', glass.GlassHandler),
 	  ('/api/map', map.ApiHandler)
 ], debug=True)
