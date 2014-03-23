@@ -7,6 +7,7 @@ import os
 import map
 import instagram
 import glass
+import picasa
 from base import Base
 
 class MainHandler(Base):
@@ -41,6 +42,7 @@ app = webapp2.WSGIApplication([
 	  ('/pictures', PictureHandler),
 	  ('/map', MapHandler),
 		('/stream', StreamHandler),
+		('/api/picasa', picasa.PicasaHandler),
 		('/api/glass', glass.GlassHandler),
 	  ('/api/map', map.ApiHandler)
 ], debug=True)

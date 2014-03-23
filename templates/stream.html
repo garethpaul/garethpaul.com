@@ -13,14 +13,28 @@
 {% block content %}
 <div class="sub_head orange">
   <div class="container">
-    <h3><i class="fa fa-eye"></i>  Glass Stream</h3>
+    <h3><i class="fa fa-eye"></i>  Stream</h3>
   </div>
 </div>
 <br>
 
 <article class="container">
   <div class="photos"></div>
-  <script type="text/javascript">
+
+<!-- GETNARRATIVE -->
+<script type="text/javascript">
+$.getJSON( "api/picasa", function( data ) {
+  html = ""
+  $.each(data['data'].slice(0,39), function( key, val ) {
+    var img = val;
+    html += "<img class='glass' src='" + img + "'/>";
+  });
+  $('.photos').append(html);
+});
+</script>
+
+<!-- GLASS -->
+<script type="text/javascript">
   $.getJSON( "api/glass", function( data ) {
     html = ""
     $.each(data['data'].slice(0,39), function( key, val ) {
