@@ -17,6 +17,10 @@ The code builds API request URLs with `access_token` in the query string. Query 
 
 Pass tokens in an `Authorization` header or the provider SDK's credential field when supported. If the provider requires query parameters, keep the token scoped and short-lived, redact URLs before logging, and avoid storing the full tokenized URL in module-level constants.
 
+## Resolution
+
+Resolved in the 2026-06-08 legacy API baseline. `instagram.py` now builds the media URL without `access_token=`, strips token query values from provider pagination URLs, and sends the configured token in an Authorization header.
+
 ## Review metadata
 
 - Repository: `garethpaul/garethpaul.com`

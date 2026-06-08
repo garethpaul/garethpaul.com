@@ -17,6 +17,7 @@ ApiHandler:
 
 from google.appengine.api import memcache
 import main
+import urllib
 import urllib2
 import json
 import cache
@@ -33,7 +34,10 @@ def get_weather(lat,lng):
 	Returns:
 		Weather dict.
 	"""
-	weather_url = "http://api.openweathermap.org/data/2.5/weather?lat=" + str(lat) + "&lon=" + str(lng)
+	weather_url = "https://api.openweathermap.org/data/2.5/weather?" + urllib.urlencode({
+		"lat": lat,
+		"lon": lng
+	})
 	result = urllib2.urlopen(weather_url).read()
 	json_data = json.loads(result)
 	# json output = http://openweathermap.org/API
@@ -51,9 +55,15 @@ def get_address(lat,lng):
 	Returns:
 		Address dict
 	"""
-	geocode_url = "https://maps.googleapis.com/maps/api/geocode/json?latlng=" + str(lat) + "," + str(lng) + "&key=" + const.geocode_key + "&sensor=true"
+	geocode_url = "https://maps.googleapis.com/maps/api/geocode/json?" + urllib.urlencode({
+		"latlng": str(lat) + "," + str(lng),
+		"key": const.geocode_key,
+		"sensor": "true"
+	})
 	result = urllib2.urlopen(geocode_url).read()
-	results = json.loads(result)['results']
+	results = json.loads(result).get('results', [])
+	if not results:
+		return ""
 	return results[0]['formatted_address']
 
 
@@ -97,12 +107,13 @@ class ApiHandler(Base):
 		Function: for a get request for the Map.py api e.g. /api/map
 		Returns: json data
 		"""
-		cachi = cache.check(self.request.url)
+		cache_key = self.request.path_qs
+		cachi = cache.check(cache_key)
 		if cachi is None:
 			# get_data
 			data = get_data()
 			# set cache
-			memcache.set(key=url_string, value=data, time=8000)
+			memcache.set(key=cache_key, value=data, time=8000)
 			self.jsonify(data)
 		else:
 			self.jsonify(cachi)

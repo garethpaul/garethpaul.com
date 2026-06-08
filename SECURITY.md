@@ -32,6 +32,7 @@ Helpful reports include:
 - Review found file, document, data, or media parsing flows; changes in those areas should receive security-focused review before merge.
 - Review found secret-like configuration names that require careful review before use; changes in those areas should receive security-focused review before merge.
 - No primary dependency manifest was detected in the repository root. If dependencies are added later, include a manifest and prefer reproducible installation instructions.
+- Private App Engine configuration such as `const.py`, API keys, OAuth tokens, private media endpoints, and account-specific values must stay out of git.
 
 ## Service and API Notes
 

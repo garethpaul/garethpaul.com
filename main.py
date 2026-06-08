@@ -45,4 +45,4 @@ app = webapp2.WSGIApplication([
 		('/api/picasa', picasa.PicasaHandler),
 		('/api/glass', glass.GlassHandler),
 	  ('/api/map', map.ApiHandler)
-], debug=True)
+], debug=False)

@@ -1,2 +1,7 @@
 *.pyc
+__pycache__/
+.DS_Store
+.env
+.env.*
 const.py
+appengine-generated/

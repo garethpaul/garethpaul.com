@@ -20,13 +20,15 @@ Priority:
 - Preserve the App Engine site structure and templates
 - Keep public profile and page behavior easy to inspect
 - Avoid committing private API credentials or personal data exports
+- Keep `scripts/check-baseline.py` passing for access-token query strings,
+  HTTPS API URLs, and cache-key guardrails
 - Keep security policy visible for the public site
 
 Next priorities:
 
 - Document local setup, deployment, and supported Python/App Engine runtime
 - Review external integrations for current API compatibility
-- Add simple route/template verification
+- Add simple route/template verification beyond the current static baseline
 - Modernize hosting/runtime in a dedicated pass if the site is revived
 
 Contribution rules:
@@ -45,6 +47,11 @@ Canonical security policy and reporting:
 Personal websites can expose private API tokens, account data, or location/media
 metadata. Future integration work should keep secrets in environment or platform
 configuration and avoid publishing private data accidentally.
+
+Current integration guardrails keep Instagram access tokens out of URL query
+strings, keep checked-in weather/geocode URL construction on HTTPS, and verify
+the map API writes cache entries with a defined request key. The public webapp2
+app keeps debug output disabled.
 
 ## What We Will Not Merge (For Now)
 
