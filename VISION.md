@@ -39,7 +39,7 @@ Personal websites can expose private API tokens, account data, or location/media
 metadata. Future integration work should keep secrets in environment or platform
 configuration and avoid publishing private data accidentally.
 
-## What We Will Not Merge For Now
+## What We Will Not Merge (For Now)
 
 - Private credentials or personal data exports
 - Broad framework migrations without a deployment plan
