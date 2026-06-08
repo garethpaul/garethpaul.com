@@ -12,15 +12,15 @@ Todo:
 
 """
 import main
-import urllib2
 import json
 import const
+from http_client import read_url
 from base import Base
 
 class GlassHandler(Base):
   def get(self):
     """ work as a proxy for the glass images api """
-    result = urllib2.urlopen(const.glass_api).read()
+    result = read_url(const.glass_api)
     self.response.headers['Content-Type'] = 'application/json'
     data = json.loads(result)
     self.response.out.write(json.dumps(data))
