@@ -1,5 +1,8 @@
 ## GarethPaul.com Vision
 
+This document explains the current state and direction of the project.
+Project overview and developer docs: [`README.md`](README.md)
+
 GarethPaul.com is the repository for a personal public website that moved from
 Heroku to Google App Engine.
 
