@@ -10,6 +10,14 @@ import glass
 import picasa
 from base import Base
 
+DEBUG_ENV_VAR = 'GARETHPAUL_DEBUG'
+DEBUG_TRUE_VALUES = {'1', 'true', 'yes', 'on'}
+
+
+def debug_enabled():
+	return os.environ.get(DEBUG_ENV_VAR, '').lower() in DEBUG_TRUE_VALUES
+
+
 class MainHandler(Base):
 	def get(self):
 		self.render("index")
@@ -45,4 +53,4 @@ app = webapp2.WSGIApplication([
 		('/api/picasa', picasa.PicasaHandler),
 		('/api/glass', glass.GlassHandler),
 	  ('/api/map', map.ApiHandler)
-], debug=True)
+], debug=debug_enabled())

@@ -62,6 +62,14 @@ When the required SDK or runtime is unavailable, use static checks and source re
 - Review changes touching network requests, sockets, or service endpoints; examples from the scan include .worktrees/fix/issue-1-https-openweather/docs/plans/2026-06-08-issue-1-https-openweather.md, .worktrees/fix/issue-1-https-openweather/instagram.py, .worktrees/fix/issue-1-https-openweather/map.py, .worktrees/fix/issue-1-https-openweather/scripts/check-baseline.sh, and 6 more.
 - Review changes touching file, media, JSON, XML, CSV, OCR, or data parsing; examples from the scan include .worktrees/fix/issue-1-https-openweather/app.yaml, .worktrees/fix/issue-1-https-openweather/base.py, .worktrees/fix/issue-1-https-openweather/glass.py, .worktrees/fix/issue-1-https-openweather/instagram.py, and 6 more.
 
+## Development Debug Mode
+
+Debug mode is disabled by default. For local development only, set:
+
+```bash
+GARETHPAUL_DEBUG=1
+```
+
 ## Maintenance Notes
 
 - See `SECURITY.md` for vulnerability reporting and safe research guidance.
