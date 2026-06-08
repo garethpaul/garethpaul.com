@@ -51,6 +51,24 @@ When the required SDK or runtime is unavailable, use static checks and source re
 ## Configuration and Secrets
 
 - Detected references to Twitter. Keep API keys, OAuth credentials, tokens, and account-specific values in local configuration only.
+- `const.py` reads runtime configuration from environment variables:
+  `GARETHPAUL_MAP_API_KEY`, `GARETHPAUL_GEOCODE_KEY`,
+  `GARETHPAUL_INSTAGRAM_ID`, `GARETHPAUL_INSTAGRAM_ACCESS_TOKEN`,
+  `GARETHPAUL_GLASS_URL`, `GARETHPAUL_GLASS_API_URL`,
+  `GARETHPAUL_PICASA_API_URL`, and `GARETHPAUL_MAP_API_URL`.
+
+The app reads required deployment settings from environment variables through
+`const.py`. Set these in the App Engine deployment environment or in a local
+shell before starting the app:
+
+- `GARETHPAUL_MAP_API_KEY`
+- `GARETHPAUL_GLASS_URL`
+- `GARETHPAUL_GEOCODE_KEY`
+- `GARETHPAUL_MAP_API_URL`
+- `GARETHPAUL_GLASS_API_URL`
+- `GARETHPAUL_PICASA_API_URL`
+- `GARETHPAUL_INSTAGRAM_ID`
+- `GARETHPAUL_INSTAGRAM_ACCESS_TOKEN`
 
 ## Security and Privacy Notes
 
@@ -73,4 +91,3 @@ Keep changes small and tied to the project that is already present in this repos
 Prior README summary:
 
 > garethpaul.com <!-- README-OVERVIEW-IMAGE --> garethpaul.com ============== This is the repo for my public site at garethpaul.com Moved from heroku over to GAE.
-
