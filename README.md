@@ -1,3 +1,8 @@
+# garethpaul.com
+
+<!-- README-OVERVIEW-IMAGE -->
+![Project overview](docs/readme-overview.svg)
+
 garethpaul.com
 ==============
 
