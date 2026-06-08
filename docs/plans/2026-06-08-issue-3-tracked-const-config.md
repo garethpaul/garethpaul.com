@@ -30,9 +30,9 @@ Issue #3 was filed from the public repository review because several modules imp
 ### U1. Environment-Backed Const Module
 
 - **Goal:** Add `const.py` with environment-backed values, safe placeholder defaults, README documentation, and focused tests for default/override behavior.
-- **Files:** `const.py`, `const_tests.py`, `README.md`
+- **Files:** `.gitignore`, `const.py`, `const_tests.py`, `README.md`, `scripts/check-baseline.sh`
 - **Test Scenarios:** Clean environment imports `const`, all referenced names exist, defaults contain no secrets, and environment variables override defaults.
-- **Verification:** `python3 const_tests.py`, `python3 -m py_compile const.py const_tests.py base.py glass.py instagram.py map.py picasa.py`, `git diff --check`, and `rg -n "GARETHPAUL_|map_api_key|glass_api|picasa_api|instagram_access_token" const.py const_tests.py README.md`.
+- **Verification:** `python3 const_tests.py`, `python3 -m py_compile const.py const_tests.py base.py glass.py instagram.py map.py picasa.py`, `scripts/check-baseline.sh`, `git diff --check`, and `rg -n "GARETHPAUL_|map_api_key|glass_api|picasa_api|instagram_access_token" const.py const_tests.py README.md scripts/check-baseline.sh`.
 
 ## Risks
 
