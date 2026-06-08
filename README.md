@@ -75,4 +75,4 @@ Keep changes small and tied to the project that is already present in this repos
 
 Prior README summary:
 
-> garethpaul.com <!-- README-OVERVIEW-IMAGE --> garethpaul.com ============== This is the repo for my public site at garethpaul.com Moved from heroku over to GAE.
+> garethpaul.com garethpaul.com ============== This is the repo for my public site at garethpaul.com Moved from heroku over to GAE.
