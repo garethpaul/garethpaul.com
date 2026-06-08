@@ -33,10 +33,10 @@ def get_weather(lat,lng):
 	Returns:
 		Weather dict.
 	"""
-	weather_url = "http://api.openweathermap.org/data/2.5/weather?lat=" + str(lat) + "&lon=" + str(lng)
+	weather_url = "https://api.openweathermap.org/data/2.5/weather?lat=" + str(lat) + "&lon=" + str(lng)
 	result = urllib2.urlopen(weather_url).read()
 	json_data = json.loads(result)
-	# json output = http://openweathermap.org/API
+	# json output = https://openweathermap.org/API
 	weather = json_data['weather'][0]
 	main = json_data['main']
 	return dict(main.items() + weather.items())
