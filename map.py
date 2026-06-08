@@ -20,7 +20,7 @@ import main
 import urllib2
 import json
 import cache
-import const
+import settings as const
 from base import Base
 
 
