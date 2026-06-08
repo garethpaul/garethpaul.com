@@ -35,6 +35,11 @@ Contribution rules:
 
 ## Security And Privacy
 
+Canonical security policy and reporting:
+
+- [`SECURITY.md`](SECURITY.md)
+
+
 Personal websites can expose private API tokens, account data, or location/media
 metadata. Future integration work should keep secrets in environment or platform
 configuration and avoid publishing private data accidentally.
