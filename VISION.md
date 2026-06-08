@@ -45,3 +45,6 @@ configuration and avoid publishing private data accidentally.
 - Broad framework migrations without a deployment plan
 - Integrations that expose account data without clear purpose
 - Generated assets unrelated to visible site behavior
+
+This list is a roadmap guardrail, not a permanent rule.
+Strong user demand and strong technical rationale can change it.
