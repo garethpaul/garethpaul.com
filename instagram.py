@@ -3,7 +3,7 @@
 import main
 import urllib2
 import json
-import const
+import settings as const
 from base import Base
 instagram_url = "https://api.instagram.com/v1/users/" + str(const.instagram_id) + "/media/recent?access_token=" + const.instagram_access_token
 

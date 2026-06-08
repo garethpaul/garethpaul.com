@@ -54,6 +54,12 @@ When the required SDK or runtime is unavailable, use static checks and source re
 ## Configuration and Secrets
 
 - Detected references to Twitter. Keep API keys, OAuth credentials, tokens, and account-specific values in local configuration only.
+- App configuration is loaded by `settings.py`. For local development, either
+  copy `const.py.example` to the ignored `const.py`, or set these environment
+  variables: `GARETHPAUL_MAP_API_KEY`, `GARETHPAUL_GLASS_URL`,
+  `GARETHPAUL_GLASS_API`, `GARETHPAUL_INSTAGRAM_ID`,
+  `GARETHPAUL_INSTAGRAM_ACCESS_TOKEN`, `GARETHPAUL_PICASA_API`,
+  `GARETHPAUL_MAP_API`, and `GARETHPAUL_GEOCODE_KEY`.
 
 ## Security and Privacy Notes
 
