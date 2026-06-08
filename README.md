@@ -1,5 +1,8 @@
 # garethpaul.com
 
+<!-- README-OVERVIEW-IMAGE -->
+![Project overview](docs/readme-overview.svg)
+
 ## Overview
 
 `garethpaul/garethpaul.com` is a static web project. GarethPaul.com Repo
@@ -73,4 +76,3 @@ Keep changes small and tied to the project that is already present in this repos
 Prior README summary:
 
 > garethpaul.com <!-- README-OVERVIEW-IMAGE --> garethpaul.com ============== This is the repo for my public site at garethpaul.com Moved from heroku over to GAE.
-
