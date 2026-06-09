@@ -20,8 +20,9 @@ Priority:
 - Preserve the App Engine site structure and templates
 - Keep public profile and page behavior easy to inspect
 - Avoid committing private API credentials or personal data exports
-- Keep `scripts/check-baseline.py` passing for access-token query strings,
-  Instagram pagination host checks, HTTPS API URLs, and cache-key guardrails
+- Keep `scripts/check-baseline.py`, `make lint`, `make test`, `make build`,
+  and `make check` passing for access-token query strings, Instagram pagination
+  host checks, HTTPS API URLs, and cache-key guardrails
 - Keep security policy visible for the public site
 
 Next priorities:
@@ -29,6 +30,8 @@ Next priorities:
 - Document local setup, deployment, and supported Python/App Engine runtime
 - Review external integrations for current API compatibility
 - Add simple route/template verification beyond the current static baseline
+- Keep local verification targets available while the legacy App Engine runtime
+  remains static-check only
 - Modernize hosting/runtime in a dedicated pass if the site is revived
 
 Contribution rules:

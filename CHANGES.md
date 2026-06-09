@@ -2,6 +2,8 @@
 
 ## 2026-06-08
 
+- Added `make lint`, `make test`, and `make build` aliases so local verification
+  has the expected pre-push gate targets in addition to `make check`.
 - Added an HTTPS-only guard for private map, Picasa, and Glass endpoint values
   loaded from local `const.py`.
 - Required those private endpoint URLs to include a host before fetching.

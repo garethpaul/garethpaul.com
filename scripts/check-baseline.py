@@ -11,6 +11,7 @@ HTTPS_HOST_PLAN = ROOT / "docs/plans/2026-06-09-private-endpoint-host-validation
 INSTAGRAM_HOST_PLAN = ROOT / "docs/plans/2026-06-09-instagram-pagination-host-validation.md"
 TEMPLATE_GLASS_PLAN = ROOT / "docs/plans/2026-06-09-template-glass-url-validation.md"
 PRIVATE_URL_PARTS_PLAN = ROOT / "docs/plans/2026-06-09-private-endpoint-url-parts.md"
+MAKE_GATES_PLAN = ROOT / "docs/plans/2026-06-09-make-gate-aliases.md"
 BUG = ROOT / "docs/bugs/p2-python-access-token-in-url-query-c765eb4838c12375.md"
 
 
@@ -46,6 +47,7 @@ def main():
         "docs/plans/2026-06-09-private-endpoint-https.md",
         "docs/plans/2026-06-09-private-endpoint-host-validation.md",
         "docs/plans/2026-06-09-private-endpoint-url-parts.md",
+        "docs/plans/2026-06-09-make-gate-aliases.md",
         "docs/plans/2026-06-09-instagram-pagination-host-validation.md",
         "docs/plans/2026-06-09-template-glass-url-validation.md",
         "docs/bugs/p2-python-access-token-in-url-query-c765eb4838c12375.md",
@@ -72,12 +74,16 @@ def main():
     template_glass_plan_text = TEMPLATE_GLASS_PLAN.read_text(encoding="utf-8") if TEMPLATE_GLASS_PLAN.exists() else ""
     private_url_parts_plan_text = PRIVATE_URL_PARTS_PLAN.read_text(encoding="utf-8") if PRIVATE_URL_PARTS_PLAN.exists() else ""
     app_yaml = read("app.yaml")
+    makefile_text = read("Makefile")
 
     require("runtime: python27" in app_yaml,
             "app.yaml should continue to document the legacy Python 2 App Engine runtime",
             failures)
     require("debug=False" in main_source and "debug=True" not in main_source,
             "main.py must keep public webapp2 debug output disabled",
+            failures)
+    require(".PHONY: build check lint test" in makefile_text and "lint test build: check" in makefile_text,
+            "Makefile must expose lint, test, build, and check gate targets",
             failures)
     require("const.py" in gitignore_text and ".env" in gitignore_text,
             "private local configuration files must stay ignored",
@@ -139,7 +145,7 @@ def main():
             "glass.py must validate the private Glass endpoint before fetching it",
             failures)
 
-    require("make check" in readme_text and "scripts/check-baseline.py" in readme_text,
+    require("make lint" in readme_text and "make test" in readme_text and "make build" in readme_text and "make check" in readme_text and "scripts/check-baseline.py" in readme_text,
             "README must document the local baseline check",
             failures)
     require("private endpoints" in readme_text and "HTTPS URLs with hosts" in readme_text,
@@ -157,7 +163,7 @@ def main():
     require("const.py" in readme_text and "Python 2 App Engine" in readme_text,
             "README must document private config and legacy runtime expectations",
             failures)
-    require("scripts/check-baseline.py" in vision_text and "access-token query strings" in vision_text,
+    require("scripts/check-baseline.py" in vision_text and "make lint" in vision_text and "make test" in vision_text and "make build" in vision_text and "access-token query strings" in vision_text,
             "VISION must describe the current integration guardrails",
             failures)
     require("Private integration endpoints" in vision_text and "HTTPS URLs with hosts" in vision_text,
@@ -172,7 +178,7 @@ def main():
     require("Instagram pagination host" in vision_text and "https://api.instagram.com" in vision_text,
             "VISION must describe the Instagram pagination host guard",
             failures)
-    require("access-token query string" in changes_text and "map API cache" in changes_text and "Instagram pagination URLs" in changes_text and "template-facing Glass URL" in changes_text and "embedded credentials or fragments" in changes_text,
+    require("make lint" in changes_text and "make test" in changes_text and "make build" in changes_text and "access-token query string" in changes_text and "map API cache" in changes_text and "Instagram pagination URLs" in changes_text and "template-facing Glass URL" in changes_text and "embedded credentials or fragments" in changes_text,
             "CHANGES must record the API-token, map-cache, URL-parts, and Instagram pagination host fixes",
             failures)
     require("Resolved" in bug_text and "Authorization header" in bug_text,
@@ -195,6 +201,10 @@ def main():
             failures)
     require("status: completed" in private_url_parts_plan_text,
             "private endpoint URL-parts plan must be marked completed",
+            failures)
+    make_gates_plan_text = MAKE_GATES_PLAN.read_text(encoding="utf-8") if MAKE_GATES_PLAN.exists() else ""
+    require("status: completed" in make_gates_plan_text,
+            "Make gate alias plan must be marked completed",
             failures)
 
     for path in sorted(ROOT.glob("*.py")) + [ROOT / "scripts/check-baseline.py"]:

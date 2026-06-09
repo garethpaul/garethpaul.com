@@ -54,10 +54,16 @@ The deployed app is a legacy Python 2 App Engine application. The private `const
 Run the local static baseline:
 
 ```bash
+make lint
+make test
+make build
 make check
 ```
 
-The baseline runs `scripts/check-baseline.py`, verifies Python syntax, checks credential and cache guardrails, and does not require App Engine or private credentials.
+The `lint`, `test`, and `build` targets currently delegate to the static
+baseline so every local gate entry point runs the same checks. The baseline runs
+`scripts/check-baseline.py`, verifies Python syntax, checks credential and cache
+guardrails, and does not require App Engine or private credentials.
 
 When the required SDK or runtime is unavailable, use static checks and source review first, then verify on a machine that has the matching platform toolchain.
 
@@ -86,11 +92,15 @@ When the required SDK or runtime is unavailable, use static checks and source re
 
 - See `SECURITY.md` for vulnerability reporting and safe research guidance.
 - See `VISION.md` for project direction and contribution guardrails.
-- Run `make check` before pushing changes to App Engine routing, API integrations, templates, or private configuration handling.
+- Run `make lint`, `make test`, `make build`, and `make check` before pushing
+  changes to App Engine routing, API integrations, templates, or private
+  configuration handling.
 - See `docs/plans/2026-06-09-template-glass-url-validation.md` for the
   template-facing Glass URL guard.
 - See `docs/plans/2026-06-09-private-endpoint-url-parts.md` for the private
   endpoint URL-parts guard.
+- See `docs/plans/2026-06-09-make-gate-aliases.md` for local verification
+  target guardrails.
 
 ## Contributing
 
