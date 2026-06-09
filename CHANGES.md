@@ -1,5 +1,10 @@
 # Changes
 
+## 2026-06-09
+
+- Skipped malformed Picasa album entries instead of raising when a partial
+  provider record lacks `content.src`.
+
 ## 2026-06-08
 
 - Replaced protocol-relative template asset URLs with explicit HTTPS

@@ -91,6 +91,8 @@ When the required SDK or runtime is unavailable, use static checks and source re
   JavaScript, and analytics references do not inherit an insecure page scheme.
 - Empty Picasa feed responses return an empty image list instead of raising
   while proxying legacy album data.
+- Malformed Picasa album entries are skipped so one partial provider record does
+  not break the whole image proxy response.
 
 ## Maintenance Notes
 
@@ -107,6 +109,8 @@ When the required SDK or runtime is unavailable, use static checks and source re
   target guardrails.
 - See `docs/plans/2026-06-09-picasa-empty-feed-guard.md` for empty Picasa feed
   handling.
+- See `docs/plans/2026-06-09-picasa-entry-shape-guard.md` for malformed Picasa
+  album entry handling.
 - See `docs/plans/2026-06-09-template-external-https.md` for explicit HTTPS
   template asset references.
 

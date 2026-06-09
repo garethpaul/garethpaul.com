@@ -14,6 +14,7 @@ PRIVATE_URL_PARTS_PLAN = ROOT / "docs/plans/2026-06-09-private-endpoint-url-part
 MAKE_GATES_PLAN = ROOT / "docs/plans/2026-06-09-make-gate-aliases.md"
 PICASA_EMPTY_FEED_PLAN = ROOT / "docs/plans/2026-06-09-picasa-empty-feed-guard.md"
 TEMPLATE_EXTERNAL_HTTPS_PLAN = ROOT / "docs/plans/2026-06-09-template-external-https.md"
+PICASA_ENTRY_SHAPE_PLAN = ROOT / "docs/plans/2026-06-09-picasa-entry-shape-guard.md"
 BUG = ROOT / "docs/bugs/p2-python-access-token-in-url-query-c765eb4838c12375.md"
 
 
@@ -51,6 +52,7 @@ def main():
         "docs/plans/2026-06-09-private-endpoint-url-parts.md",
         "docs/plans/2026-06-09-make-gate-aliases.md",
         "docs/plans/2026-06-09-picasa-empty-feed-guard.md",
+        "docs/plans/2026-06-09-picasa-entry-shape-guard.md",
         "docs/plans/2026-06-09-template-external-https.md",
         "docs/plans/2026-06-09-instagram-pagination-host-validation.md",
         "docs/plans/2026-06-09-template-glass-url-validation.md",
@@ -149,6 +151,12 @@ def main():
     require("data.get('feed', {}).get('entry', [])" in picasa_source,
             "picasa.py must handle empty or missing Picasa feed entries",
             failures)
+    require("def picasa_entry_src" in picasa_source and "isinstance(entry, dict)" in picasa_source and "isinstance(content, dict)" in picasa_source,
+            "picasa.py must parse album entry image sources through a shape guard",
+            failures)
+    require("img_src = picasa_entry_src(i)" in picasa_source and "if img_src:" in picasa_source,
+            "picasa.py must skip malformed Picasa entries instead of raising",
+            failures)
     require('require_https_url(const.glass_api, "glass_api")' in glass_source,
             "glass.py must validate the private Glass endpoint before fetching it",
             failures)
@@ -174,6 +182,9 @@ def main():
     require("Empty Picasa feed responses" in readme_text,
             "README must document the Picasa empty-feed guard",
             failures)
+    require("Malformed Picasa album entries" in readme_text,
+            "README must document the Picasa entry shape guard",
+            failures)
     require("External template assets" in readme_text and "explicit HTTPS URLs" in readme_text,
             "README must document the template external asset HTTPS guard",
             failures)
@@ -198,13 +209,16 @@ def main():
     require("Empty Picasa feed responses" in vision_text,
             "VISION must describe the Picasa empty-feed guard",
             failures)
+    require("Malformed Picasa album entries" in vision_text,
+            "VISION must describe the Picasa entry shape guard",
+            failures)
     require("External template assets" in vision_text and "explicit HTTPS URLs" in vision_text,
             "VISION must describe the template external asset HTTPS guard",
             failures)
     require("Instagram pagination host" in vision_text and "https://api.instagram.com" in vision_text,
             "VISION must describe the Instagram pagination host guard",
             failures)
-    require("make lint" in changes_text and "make test" in changes_text and "make build" in changes_text and "access-token query string" in changes_text and "map API cache" in changes_text and "Instagram pagination URLs" in changes_text and "template-facing Glass URL" in changes_text and "embedded credentials or fragments" in changes_text and "empty Picasa feed" in changes_text and "protocol-relative template asset URLs" in changes_text,
+    require("make lint" in changes_text and "make test" in changes_text and "make build" in changes_text and "access-token query string" in changes_text and "map API cache" in changes_text and "Instagram pagination URLs" in changes_text and "template-facing Glass URL" in changes_text and "embedded credentials or fragments" in changes_text and "empty Picasa feed" in changes_text and "malformed Picasa album entries" in changes_text and "protocol-relative template asset URLs" in changes_text,
             "CHANGES must record the API-token, map-cache, URL-parts, Instagram pagination host, and template asset fixes",
             failures)
     require("Resolved" in bug_text and "Authorization header" in bug_text,
@@ -239,6 +253,10 @@ def main():
     template_external_https_plan_text = TEMPLATE_EXTERNAL_HTTPS_PLAN.read_text(encoding="utf-8") if TEMPLATE_EXTERNAL_HTTPS_PLAN.exists() else ""
     require("status: completed" in template_external_https_plan_text,
             "template external asset HTTPS plan must be marked completed",
+            failures)
+    picasa_entry_shape_plan_text = PICASA_ENTRY_SHAPE_PLAN.read_text(encoding="utf-8") if PICASA_ENTRY_SHAPE_PLAN.exists() else ""
+    require("status: completed" in picasa_entry_shape_plan_text,
+            "Picasa entry shape plan must be marked completed",
             failures)
 
     for path in sorted(ROOT.glob("*.py")) + [ROOT / "scripts/check-baseline.py"]:

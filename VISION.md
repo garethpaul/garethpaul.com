@@ -60,6 +60,8 @@ loaded from local `const.py` must also be HTTPS URLs with hosts and no embedded 
 The template-facing Glass URL from `const.py` must also be validated before stream templates render it into client-side image URLs.
 Empty Picasa feed responses should continue to return an empty image list
 instead of raising while the legacy album integration remains available.
+Malformed Picasa album entries should be skipped so partial provider records do
+not break otherwise valid image proxy responses.
 External template assets should continue to use explicit HTTPS URLs for shared
 CSS, JavaScript, and analytics references.
 

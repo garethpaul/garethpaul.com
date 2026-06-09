@@ -17,6 +17,17 @@ import json
 import const
 from base import Base, require_https_url
 
+
+def picasa_entry_src(entry):
+  """Return an image source only when a Picasa entry has the expected shape."""
+  if not isinstance(entry, dict):
+    return None
+  content = entry.get('content')
+  if not isinstance(content, dict):
+    return None
+  return content.get('src')
+
+
 class PicasaHandler(Base):
   def get(self):
     """ work as a proxy for the glass images api """
@@ -26,7 +37,8 @@ class PicasaHandler(Base):
     entries = data.get('feed', {}).get('entry', [])
     images = []
     for i in entries:
-      img_src = i['content']['src']
-      images.append(img_src)
+      img_src = picasa_entry_src(i)
+      if img_src:
+        images.append(img_src)
     images.reverse()
     self.response.out.write(json.dumps({"data": images}))

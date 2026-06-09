@@ -39,6 +39,8 @@ Helpful reports include:
 For web services, APIs, sockets, or scraping workflows, prioritize reports involving authentication bypass, authorization errors, injection, server-side request forgery, unsafe deserialization, credential leakage, data exposure, or denial-of-service conditions. Use test accounts and minimal proof-of-concept traffic only.
 Browser-facing template dependencies should stay on explicit HTTPS URLs so
 third-party assets are not loaded through an inherited insecure scheme.
+Picasa album proxy parsing should skip malformed entries rather than letting one
+partial provider record fail the full image response.
 
 ## Dependency and Supply Chain Security
 
