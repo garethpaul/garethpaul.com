@@ -6,6 +6,7 @@ import sys
 
 ROOT = Path(__file__).resolve().parents[1]
 PLAN = ROOT / "docs/plans/2026-06-08-legacy-api-baseline.md"
+HTTPS_PLAN = ROOT / "docs/plans/2026-06-09-private-endpoint-https.md"
 BUG = ROOT / "docs/bugs/p2-python-access-token-in-url-query-c765eb4838c12375.md"
 
 
@@ -38,6 +39,7 @@ def main():
         "templates/base.html",
         "templates/stream.html",
         "docs/plans/2026-06-08-legacy-api-baseline.md",
+        "docs/plans/2026-06-09-private-endpoint-https.md",
         "docs/bugs/p2-python-access-token-in-url-query-c765eb4838c12375.md",
     ]
 
@@ -45,14 +47,18 @@ def main():
         require((ROOT / relative_path).is_file(), f"Required file missing: {relative_path}", failures)
 
     instagram_source = read("instagram.py")
+    base_source = read("base.py")
+    glass_source = read("glass.py")
     main_source = read("main.py")
     map_source = read("map.py")
+    picasa_source = read("picasa.py")
     readme_text = read("README.md")
     vision_text = read("VISION.md")
     changes_text = read("CHANGES.md")
     gitignore_text = read(".gitignore")
     bug_text = BUG.read_text(encoding="utf-8") if BUG.exists() else ""
     plan_text = PLAN.read_text(encoding="utf-8") if PLAN.exists() else ""
+    https_plan_text = HTTPS_PLAN.read_text(encoding="utf-8") if HTTPS_PLAN.exists() else ""
     app_yaml = read("app.yaml")
 
     require("runtime: python27" in app_yaml,
@@ -93,15 +99,33 @@ def main():
     require("if not results:" in map_source and 'return ""' in map_source,
             "map.py must handle empty geocoding responses",
             failures)
+    require("def require_https_url" in base_source and "urlparse.urlsplit" in base_source,
+            "base.py must validate private endpoint URL schemes",
+            failures)
+    require('require_https_url(const.map_api, "map_api")' in map_source,
+            "map.py must validate the private map API endpoint before fetching it",
+            failures)
+    require('require_https_url(const.picasa_api, "picasa_api")' in picasa_source,
+            "picasa.py must validate the private Picasa endpoint before fetching it",
+            failures)
+    require('require_https_url(const.glass_api, "glass_api")' in glass_source,
+            "glass.py must validate the private Glass endpoint before fetching it",
+            failures)
 
     require("make check" in readme_text and "scripts/check-baseline.py" in readme_text,
             "README must document the local baseline check",
+            failures)
+    require("private endpoints" in readme_text and "HTTPS" in readme_text,
+            "README must document the private endpoint HTTPS guard",
             failures)
     require("const.py" in readme_text and "Python 2 App Engine" in readme_text,
             "README must document private config and legacy runtime expectations",
             failures)
     require("scripts/check-baseline.py" in vision_text and "access-token query strings" in vision_text,
             "VISION must describe the current integration guardrails",
+            failures)
+    require("private integration endpoints" in vision_text and "HTTPS" in vision_text,
+            "VISION must describe the private endpoint HTTPS guard",
             failures)
     require("access-token query string" in changes_text and "map API cache" in changes_text,
             "CHANGES must record the API-token and map-cache fixes",
@@ -111,6 +135,9 @@ def main():
             failures)
     require("status: completed" in plan_text,
             "plan must be marked completed",
+            failures)
+    require("status: completed" in https_plan_text,
+            "private endpoint HTTPS plan must be marked completed",
             failures)
 
     for path in sorted(ROOT.glob("*.py")) + [ROOT / "scripts/check-baseline.py"]:

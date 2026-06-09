@@ -51,7 +51,8 @@ configuration and avoid publishing private data accidentally.
 Current integration guardrails keep Instagram access tokens out of URL query
 strings, keep checked-in weather/geocode URL construction on HTTPS, and verify
 the map API writes cache entries with a defined request key. The public webapp2
-app keeps debug output disabled.
+app keeps debug output disabled. private integration endpoints loaded from
+local `const.py` must also be HTTPS before proxy handlers fetch them.
 
 ## What We Will Not Merge (For Now)
 

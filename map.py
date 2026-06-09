@@ -22,7 +22,7 @@ import urllib2
 import json
 import cache
 import const
-from base import Base
+from base import Base, require_https_url
 
 
 def get_weather(lat,lng):
@@ -73,7 +73,7 @@ def get_latlng():
 	Returns:
 		Dict object e.g. {"lat": "30.27", "lng": "-97.74"}
 	"""
-	result = urllib2.urlopen(const.map_api).read()
+	result = urllib2.urlopen(require_https_url(const.map_api, "map_api")).read()
 	lng = json.loads(result)['lng']
 	lat = json.loads(result)['lat']
 	# fuzzify the map - needed for privacy reasons :-)

@@ -15,12 +15,12 @@ import main
 import urllib2
 import json
 import const
-from base import Base
+from base import Base, require_https_url
 
 class PicasaHandler(Base):
   def get(self):
     """ work as a proxy for the glass images api """
-    result = urllib2.urlopen(const.picasa_api).read()
+    result = urllib2.urlopen(require_https_url(const.picasa_api, "picasa_api")).read()
     self.response.headers['Content-Type'] = 'application/json'
     data = json.loads(result)
     entries = data['feed']['entry']

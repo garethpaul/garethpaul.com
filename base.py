@@ -11,11 +11,19 @@ import webapp2
 import jinja2
 import const
 import json
+import urlparse
 
 JINJA_ENVIRONMENT = jinja2.Environment(
     loader=jinja2.FileSystemLoader("templates"),
     extensions=['jinja2.ext.autoescape'],
     autoescape=True)
+
+
+def require_https_url(url, label):
+  """Return a private endpoint URL only when it is configured for HTTPS."""
+  if not url or urlparse.urlsplit(url).scheme != "https":
+    raise ValueError("%s must use an HTTPS URL" % label)
+  return url
 
 
 class Base(webapp2.RequestHandler):
