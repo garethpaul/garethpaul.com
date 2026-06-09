@@ -54,7 +54,8 @@ strings, require Instagram pagination host values to stay on
 HTTPS, and verify the map API writes cache entries with a defined request key.
 The public webapp2 app keeps debug output disabled. Private integration endpoints
 loaded from local `const.py` must also be HTTPS URLs with hosts before proxy
-handlers fetch them.
+handlers fetch them. The template-facing Glass URL from `const.py` must also be
+validated before stream templates render it into client-side image URLs.
 
 ## What We Will Not Merge (For Now)
 

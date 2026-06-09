@@ -78,12 +78,17 @@ When the required SDK or runtime is unavailable, use static checks and source re
 - Private endpoints loaded from local `const.py`, including map location,
   Picasa, and Glass URLs, are validated as HTTPS URLs with hosts before the app
   fetches them.
+- The template-facing Glass URL from `const.py` is also validated as an HTTPS
+  URL with a host before the Stream page renders it into client-side image
+  URLs.
 
 ## Maintenance Notes
 
 - See `SECURITY.md` for vulnerability reporting and safe research guidance.
 - See `VISION.md` for project direction and contribution guardrails.
 - Run `make check` before pushing changes to App Engine routing, API integrations, templates, or private configuration handling.
+- See `docs/plans/2026-06-09-template-glass-url-validation.md` for the
+  template-facing Glass URL guard.
 
 ## Contributing
 

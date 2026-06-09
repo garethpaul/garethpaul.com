@@ -45,5 +45,8 @@ class Base(webapp2.RequestHandler):
     Render templates e.g. self.render("index.html")
     """
     template = JINJA_ENVIRONMENT.get_template(name + '.html')
-    data = {"map_api_key": const.map_api_key, "glass_url": const.glass_url}
+    data = {
+      "map_api_key": const.map_api_key,
+      "glass_url": require_https_url(const.glass_url, "glass_url"),
+    }
     self.response.write(template.render(data))

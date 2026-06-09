@@ -7,6 +7,8 @@
 - Required those private endpoint URLs to include a host before fetching.
 - Required Instagram pagination URLs to stay on `https://api.instagram.com`
   before sending bearer credentials.
+- Validated the template-facing Glass URL before rendering it into stream image
+  URLs.
 - Removed Instagram access-token query string construction and now send the token via an authorization header.
 - Switched checked-in weather/geocode URL construction to structured HTTPS requests.
 - Fixed the map API cache write to use a defined request cache key.
