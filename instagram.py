@@ -11,6 +11,7 @@ from base import Base
 INSTAGRAM_RECENT_MEDIA_URL = (
 	"https://api.instagram.com/v1/users/" + str(const.instagram_id) + "/media/recent"
 )
+INSTAGRAM_API_HOST = "api.instagram.com"
 
 
 def _without_access_token_query(url):
@@ -30,8 +31,17 @@ def _without_access_token_query(url):
 	))
 
 
+def require_instagram_api_url(url):
+	"""Return only HTTPS Instagram API URLs before adding bearer credentials."""
+	parts = urlparse.urlsplit(url or "")
+	if parts.scheme != "https" or parts.netloc.lower() != INSTAGRAM_API_HOST:
+		raise ValueError("Instagram API URL must use https://api.instagram.com")
+	return url
+
+
 def instagram_request(url):
-	request = urllib2.Request(_without_access_token_query(url))
+	api_url = require_instagram_api_url(_without_access_token_query(url))
+	request = urllib2.Request(api_url)
 	request.add_header("Authorization", "Bearer " + const.instagram_access_token)
 	return urllib2.urlopen(request)
 

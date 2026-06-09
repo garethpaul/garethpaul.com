@@ -21,7 +21,7 @@ Priority:
 - Keep public profile and page behavior easy to inspect
 - Avoid committing private API credentials or personal data exports
 - Keep `scripts/check-baseline.py` passing for access-token query strings,
-  HTTPS API URLs, and cache-key guardrails
+  Instagram pagination host checks, HTTPS API URLs, and cache-key guardrails
 - Keep security policy visible for the public site
 
 Next priorities:
@@ -49,11 +49,12 @@ metadata. Future integration work should keep secrets in environment or platform
 configuration and avoid publishing private data accidentally.
 
 Current integration guardrails keep Instagram access tokens out of URL query
-strings, keep checked-in weather/geocode URL construction on HTTPS, and verify
-the map API writes cache entries with a defined request key. The public webapp2
-app keeps debug output disabled. Private integration endpoints loaded from
-local `const.py` must also be HTTPS URLs with hosts before proxy handlers fetch
-them.
+strings, require Instagram pagination host values to stay on
+`https://api.instagram.com`, keep checked-in weather/geocode URL construction on
+HTTPS, and verify the map API writes cache entries with a defined request key.
+The public webapp2 app keeps debug output disabled. Private integration endpoints
+loaded from local `const.py` must also be HTTPS URLs with hosts before proxy
+handlers fetch them.
 
 ## What We Will Not Merge (For Now)
 

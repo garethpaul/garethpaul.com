@@ -72,6 +72,8 @@ When the required SDK or runtime is unavailable, use static checks and source re
 - Review changes touching network requests, sockets, or service endpoints; examples include `instagram.py`, `map.py`, `picasa.py`, and `glass.py`.
 - Review changes touching JSON, template, or API-response parsing; examples include `base.py`, `glass.py`, `instagram.py`, `map.py`, and `picasa.py`.
 - Instagram access tokens must not be placed in URL query strings. The checked-in proxy strips token query values from pagination URLs and sends the token through an authorization header.
+- Instagram pagination URLs must remain on `https://api.instagram.com` before
+  the proxy sends the bearer token header.
 - Map API responses cache by request path/query and weather/geocode URLs are built with structured HTTPS query encoding.
 - Private endpoints loaded from local `const.py`, including map location,
   Picasa, and Glass URLs, are validated as HTTPS URLs with hosts before the app

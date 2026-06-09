@@ -8,6 +8,7 @@ ROOT = Path(__file__).resolve().parents[1]
 PLAN = ROOT / "docs/plans/2026-06-08-legacy-api-baseline.md"
 HTTPS_PLAN = ROOT / "docs/plans/2026-06-09-private-endpoint-https.md"
 HTTPS_HOST_PLAN = ROOT / "docs/plans/2026-06-09-private-endpoint-host-validation.md"
+INSTAGRAM_HOST_PLAN = ROOT / "docs/plans/2026-06-09-instagram-pagination-host-validation.md"
 BUG = ROOT / "docs/bugs/p2-python-access-token-in-url-query-c765eb4838c12375.md"
 
 
@@ -42,6 +43,7 @@ def main():
         "docs/plans/2026-06-08-legacy-api-baseline.md",
         "docs/plans/2026-06-09-private-endpoint-https.md",
         "docs/plans/2026-06-09-private-endpoint-host-validation.md",
+        "docs/plans/2026-06-09-instagram-pagination-host-validation.md",
         "docs/bugs/p2-python-access-token-in-url-query-c765eb4838c12375.md",
     ]
 
@@ -62,6 +64,7 @@ def main():
     plan_text = PLAN.read_text(encoding="utf-8") if PLAN.exists() else ""
     https_plan_text = HTTPS_PLAN.read_text(encoding="utf-8") if HTTPS_PLAN.exists() else ""
     https_host_plan_text = HTTPS_HOST_PLAN.read_text(encoding="utf-8") if HTTPS_HOST_PLAN.exists() else ""
+    instagram_host_plan_text = INSTAGRAM_HOST_PLAN.read_text(encoding="utf-8") if INSTAGRAM_HOST_PLAN.exists() else ""
     app_yaml = read("app.yaml")
 
     require("runtime: python27" in app_yaml,
@@ -85,6 +88,15 @@ def main():
             failures)
     require("_without_access_token_query" in instagram_source and "parse_qsl" in instagram_source,
             "instagram.py must strip access_token from provider pagination URLs",
+            failures)
+    require("INSTAGRAM_API_HOST" in instagram_source and "api.instagram.com" in instagram_source and "def require_instagram_api_url" in instagram_source,
+            "instagram.py must define the allowed Instagram API host",
+            failures)
+    require('parts.scheme != "https"' in instagram_source and "parts.netloc.lower() != INSTAGRAM_API_HOST" in instagram_source,
+            "instagram.py must reject non-HTTPS or non-Instagram API URLs before sending bearer credentials",
+            failures)
+    require("require_instagram_api_url(_without_access_token_query(url))" in instagram_source,
+            "instagram.py must validate stripped Instagram URLs before creating authorized requests",
             failures)
 
     require("https://api.openweathermap.org" in map_source and "http://api.openweathermap.org" not in map_source,
@@ -121,6 +133,9 @@ def main():
     require("private endpoints" in readme_text and "HTTPS URLs with hosts" in readme_text,
             "README must document the private endpoint HTTPS host guard",
             failures)
+    require("Instagram pagination URLs" in readme_text and "https://api.instagram.com" in readme_text,
+            "README must document the Instagram pagination host guard",
+            failures)
     require("const.py" in readme_text and "Python 2 App Engine" in readme_text,
             "README must document private config and legacy runtime expectations",
             failures)
@@ -130,8 +145,11 @@ def main():
     require("Private integration endpoints" in vision_text and "HTTPS URLs with hosts" in vision_text,
             "VISION must describe the private endpoint HTTPS host guard",
             failures)
-    require("access-token query string" in changes_text and "map API cache" in changes_text,
-            "CHANGES must record the API-token and map-cache fixes",
+    require("Instagram pagination host" in vision_text and "https://api.instagram.com" in vision_text,
+            "VISION must describe the Instagram pagination host guard",
+            failures)
+    require("access-token query string" in changes_text and "map API cache" in changes_text and "Instagram pagination URLs" in changes_text,
+            "CHANGES must record the API-token, map-cache, and Instagram pagination host fixes",
             failures)
     require("Resolved" in bug_text and "Authorization header" in bug_text,
             "recorded bug must describe the resolved access-token handling",
@@ -144,6 +162,9 @@ def main():
             failures)
     require("status: completed" in https_host_plan_text,
             "private endpoint HTTPS host plan must be marked completed",
+            failures)
+    require("status: completed" in instagram_host_plan_text,
+            "Instagram pagination host plan must be marked completed",
             failures)
 
     for path in sorted(ROOT.glob("*.py")) + [ROOT / "scripts/check-baseline.py"]:
