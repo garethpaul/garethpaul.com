@@ -4,6 +4,8 @@
 
 - Added `make lint`, `make test`, and `make build` aliases so local verification
   has the expected pre-push gate targets in addition to `make check`.
+- Returned an empty image list for empty Picasa feed responses instead of
+  raising while proxying album data.
 - Added an HTTPS-only guard for private map, Picasa, and Glass endpoint values
   loaded from local `const.py`.
 - Required those private endpoint URLs to include a host before fetching.

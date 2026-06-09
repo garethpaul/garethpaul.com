@@ -12,6 +12,7 @@ INSTAGRAM_HOST_PLAN = ROOT / "docs/plans/2026-06-09-instagram-pagination-host-va
 TEMPLATE_GLASS_PLAN = ROOT / "docs/plans/2026-06-09-template-glass-url-validation.md"
 PRIVATE_URL_PARTS_PLAN = ROOT / "docs/plans/2026-06-09-private-endpoint-url-parts.md"
 MAKE_GATES_PLAN = ROOT / "docs/plans/2026-06-09-make-gate-aliases.md"
+PICASA_EMPTY_FEED_PLAN = ROOT / "docs/plans/2026-06-09-picasa-empty-feed-guard.md"
 BUG = ROOT / "docs/bugs/p2-python-access-token-in-url-query-c765eb4838c12375.md"
 
 
@@ -48,6 +49,7 @@ def main():
         "docs/plans/2026-06-09-private-endpoint-host-validation.md",
         "docs/plans/2026-06-09-private-endpoint-url-parts.md",
         "docs/plans/2026-06-09-make-gate-aliases.md",
+        "docs/plans/2026-06-09-picasa-empty-feed-guard.md",
         "docs/plans/2026-06-09-instagram-pagination-host-validation.md",
         "docs/plans/2026-06-09-template-glass-url-validation.md",
         "docs/bugs/p2-python-access-token-in-url-query-c765eb4838c12375.md",
@@ -141,6 +143,9 @@ def main():
     require('require_https_url(const.picasa_api, "picasa_api")' in picasa_source,
             "picasa.py must validate the private Picasa endpoint before fetching it",
             failures)
+    require("data.get('feed', {}).get('entry', [])" in picasa_source,
+            "picasa.py must handle empty or missing Picasa feed entries",
+            failures)
     require('require_https_url(const.glass_api, "glass_api")' in glass_source,
             "glass.py must validate the private Glass endpoint before fetching it",
             failures)
@@ -156,6 +161,9 @@ def main():
             failures)
     require("template-facing Glass URL" in readme_text,
             "README must document the template-facing Glass URL guard",
+            failures)
+    require("Empty Picasa feed responses" in readme_text,
+            "README must document the Picasa empty-feed guard",
             failures)
     require("Instagram pagination URLs" in readme_text and "https://api.instagram.com" in readme_text,
             "README must document the Instagram pagination host guard",
@@ -175,10 +183,13 @@ def main():
     require("template-facing Glass URL" in vision_text,
             "VISION must describe the template-facing Glass URL guard",
             failures)
+    require("Empty Picasa feed responses" in vision_text,
+            "VISION must describe the Picasa empty-feed guard",
+            failures)
     require("Instagram pagination host" in vision_text and "https://api.instagram.com" in vision_text,
             "VISION must describe the Instagram pagination host guard",
             failures)
-    require("make lint" in changes_text and "make test" in changes_text and "make build" in changes_text and "access-token query string" in changes_text and "map API cache" in changes_text and "Instagram pagination URLs" in changes_text and "template-facing Glass URL" in changes_text and "embedded credentials or fragments" in changes_text,
+    require("make lint" in changes_text and "make test" in changes_text and "make build" in changes_text and "access-token query string" in changes_text and "map API cache" in changes_text and "Instagram pagination URLs" in changes_text and "template-facing Glass URL" in changes_text and "embedded credentials or fragments" in changes_text and "empty Picasa feed" in changes_text,
             "CHANGES must record the API-token, map-cache, URL-parts, and Instagram pagination host fixes",
             failures)
     require("Resolved" in bug_text and "Authorization header" in bug_text,
@@ -205,6 +216,10 @@ def main():
     make_gates_plan_text = MAKE_GATES_PLAN.read_text(encoding="utf-8") if MAKE_GATES_PLAN.exists() else ""
     require("status: completed" in make_gates_plan_text,
             "Make gate alias plan must be marked completed",
+            failures)
+    picasa_empty_feed_plan_text = PICASA_EMPTY_FEED_PLAN.read_text(encoding="utf-8") if PICASA_EMPTY_FEED_PLAN.exists() else ""
+    require("status: completed" in picasa_empty_feed_plan_text,
+            "Picasa empty-feed plan must be marked completed",
             failures)
 
     for path in sorted(ROOT.glob("*.py")) + [ROOT / "scripts/check-baseline.py"]:

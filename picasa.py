@@ -23,7 +23,7 @@ class PicasaHandler(Base):
     result = urllib2.urlopen(require_https_url(const.picasa_api, "picasa_api")).read()
     self.response.headers['Content-Type'] = 'application/json'
     data = json.loads(result)
-    entries = data['feed']['entry']
+    entries = data.get('feed', {}).get('entry', [])
     images = []
     for i in entries:
       img_src = i['content']['src']
