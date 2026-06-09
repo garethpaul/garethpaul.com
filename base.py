@@ -21,8 +21,9 @@ JINJA_ENVIRONMENT = jinja2.Environment(
 
 def require_https_url(url, label):
   """Return a private endpoint URL only when it is configured for HTTPS."""
-  if not url or urlparse.urlsplit(url).scheme != "https":
-    raise ValueError("%s must use an HTTPS URL" % label)
+  parsed = urlparse.urlsplit(url or "")
+  if parsed.scheme != "https" or not parsed.netloc:
+    raise ValueError("%s must use an HTTPS URL with a host" % label)
   return url
 
 

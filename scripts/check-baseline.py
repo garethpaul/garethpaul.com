@@ -7,6 +7,7 @@ import sys
 ROOT = Path(__file__).resolve().parents[1]
 PLAN = ROOT / "docs/plans/2026-06-08-legacy-api-baseline.md"
 HTTPS_PLAN = ROOT / "docs/plans/2026-06-09-private-endpoint-https.md"
+HTTPS_HOST_PLAN = ROOT / "docs/plans/2026-06-09-private-endpoint-host-validation.md"
 BUG = ROOT / "docs/bugs/p2-python-access-token-in-url-query-c765eb4838c12375.md"
 
 
@@ -40,6 +41,7 @@ def main():
         "templates/stream.html",
         "docs/plans/2026-06-08-legacy-api-baseline.md",
         "docs/plans/2026-06-09-private-endpoint-https.md",
+        "docs/plans/2026-06-09-private-endpoint-host-validation.md",
         "docs/bugs/p2-python-access-token-in-url-query-c765eb4838c12375.md",
     ]
 
@@ -59,6 +61,7 @@ def main():
     bug_text = BUG.read_text(encoding="utf-8") if BUG.exists() else ""
     plan_text = PLAN.read_text(encoding="utf-8") if PLAN.exists() else ""
     https_plan_text = HTTPS_PLAN.read_text(encoding="utf-8") if HTTPS_PLAN.exists() else ""
+    https_host_plan_text = HTTPS_HOST_PLAN.read_text(encoding="utf-8") if HTTPS_HOST_PLAN.exists() else ""
     app_yaml = read("app.yaml")
 
     require("runtime: python27" in app_yaml,
@@ -99,8 +102,8 @@ def main():
     require("if not results:" in map_source and 'return ""' in map_source,
             "map.py must handle empty geocoding responses",
             failures)
-    require("def require_https_url" in base_source and "urlparse.urlsplit" in base_source,
-            "base.py must validate private endpoint URL schemes",
+    require("def require_https_url" in base_source and "urlparse.urlsplit" in base_source and "parsed.netloc" in base_source,
+            "base.py must validate private endpoint URL schemes and hosts",
             failures)
     require('require_https_url(const.map_api, "map_api")' in map_source,
             "map.py must validate the private map API endpoint before fetching it",
@@ -115,8 +118,8 @@ def main():
     require("make check" in readme_text and "scripts/check-baseline.py" in readme_text,
             "README must document the local baseline check",
             failures)
-    require("private endpoints" in readme_text and "HTTPS" in readme_text,
-            "README must document the private endpoint HTTPS guard",
+    require("private endpoints" in readme_text and "HTTPS URLs with hosts" in readme_text,
+            "README must document the private endpoint HTTPS host guard",
             failures)
     require("const.py" in readme_text and "Python 2 App Engine" in readme_text,
             "README must document private config and legacy runtime expectations",
@@ -124,8 +127,8 @@ def main():
     require("scripts/check-baseline.py" in vision_text and "access-token query strings" in vision_text,
             "VISION must describe the current integration guardrails",
             failures)
-    require("private integration endpoints" in vision_text and "HTTPS" in vision_text,
-            "VISION must describe the private endpoint HTTPS guard",
+    require("Private integration endpoints" in vision_text and "HTTPS URLs with hosts" in vision_text,
+            "VISION must describe the private endpoint HTTPS host guard",
             failures)
     require("access-token query string" in changes_text and "map API cache" in changes_text,
             "CHANGES must record the API-token and map-cache fixes",
@@ -138,6 +141,9 @@ def main():
             failures)
     require("status: completed" in https_plan_text,
             "private endpoint HTTPS plan must be marked completed",
+            failures)
+    require("status: completed" in https_host_plan_text,
+            "private endpoint HTTPS host plan must be marked completed",
             failures)
 
     for path in sorted(ROOT.glob("*.py")) + [ROOT / "scripts/check-baseline.py"]:

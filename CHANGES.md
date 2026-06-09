@@ -4,6 +4,7 @@
 
 - Added an HTTPS-only guard for private map, Picasa, and Glass endpoint values
   loaded from local `const.py`.
+- Required those private endpoint URLs to include a host before fetching.
 - Removed Instagram access-token query string construction and now send the token via an authorization header.
 - Switched checked-in weather/geocode URL construction to structured HTTPS requests.
 - Fixed the map API cache write to use a defined request cache key.
