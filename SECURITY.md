@@ -37,6 +37,8 @@ Helpful reports include:
 ## Service and API Notes
 
 For web services, APIs, sockets, or scraping workflows, prioritize reports involving authentication bypass, authorization errors, injection, server-side request forgery, unsafe deserialization, credential leakage, data exposure, or denial-of-service conditions. Use test accounts and minimal proof-of-concept traffic only.
+Browser-facing template dependencies should stay on explicit HTTPS URLs so
+third-party assets are not loaded through an inherited insecure scheme.
 
 ## Dependency and Supply Chain Security
 

@@ -2,6 +2,8 @@
 
 ## 2026-06-08
 
+- Replaced protocol-relative template asset URLs with explicit HTTPS
+  references for shared CSS, JavaScript, and analytics assets.
 - Added `make lint`, `make test`, and `make build` aliases so local verification
   has the expected pre-push gate targets in addition to `make check`.
 - Returned an empty image list for empty Picasa feed responses instead of

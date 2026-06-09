@@ -87,6 +87,8 @@ When the required SDK or runtime is unavailable, use static checks and source re
 - The template-facing Glass URL from `const.py` is also validated as an HTTPS
   URL with a host and no embedded credentials or fragments before the Stream
   page renders it into client-side image URLs.
+- External template assets load through explicit HTTPS URLs so shared CSS,
+  JavaScript, and analytics references do not inherit an insecure page scheme.
 - Empty Picasa feed responses return an empty image list instead of raising
   while proxying legacy album data.
 
@@ -105,6 +107,8 @@ When the required SDK or runtime is unavailable, use static checks and source re
   target guardrails.
 - See `docs/plans/2026-06-09-picasa-empty-feed-guard.md` for empty Picasa feed
   handling.
+- See `docs/plans/2026-06-09-template-external-https.md` for explicit HTTPS
+  template asset references.
 
 ## Contributing
 

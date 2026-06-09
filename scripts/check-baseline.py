@@ -13,6 +13,7 @@ TEMPLATE_GLASS_PLAN = ROOT / "docs/plans/2026-06-09-template-glass-url-validatio
 PRIVATE_URL_PARTS_PLAN = ROOT / "docs/plans/2026-06-09-private-endpoint-url-parts.md"
 MAKE_GATES_PLAN = ROOT / "docs/plans/2026-06-09-make-gate-aliases.md"
 PICASA_EMPTY_FEED_PLAN = ROOT / "docs/plans/2026-06-09-picasa-empty-feed-guard.md"
+TEMPLATE_EXTERNAL_HTTPS_PLAN = ROOT / "docs/plans/2026-06-09-template-external-https.md"
 BUG = ROOT / "docs/bugs/p2-python-access-token-in-url-query-c765eb4838c12375.md"
 
 
@@ -50,6 +51,7 @@ def main():
         "docs/plans/2026-06-09-private-endpoint-url-parts.md",
         "docs/plans/2026-06-09-make-gate-aliases.md",
         "docs/plans/2026-06-09-picasa-empty-feed-guard.md",
+        "docs/plans/2026-06-09-template-external-https.md",
         "docs/plans/2026-06-09-instagram-pagination-host-validation.md",
         "docs/plans/2026-06-09-template-glass-url-validation.md",
         "docs/bugs/p2-python-access-token-in-url-query-c765eb4838c12375.md",
@@ -64,6 +66,7 @@ def main():
     main_source = read("main.py")
     map_source = read("map.py")
     picasa_source = read("picasa.py")
+    base_template = read("templates/base.html")
     readme_text = read("README.md")
     vision_text = read("VISION.md")
     changes_text = read("CHANGES.md")
@@ -149,6 +152,12 @@ def main():
     require('require_https_url(const.glass_api, "glass_api")' in glass_source,
             "glass.py must validate the private Glass endpoint before fetching it",
             failures)
+    require('href="//' not in base_template and 'src="//' not in base_template and "'//www.google-analytics.com/analytics.js'" not in base_template,
+            "templates/base.html must not use protocol-relative external browser asset URLs",
+            failures)
+    require("https://netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" in base_template and "https://netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css" in base_template and "https://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js" in base_template and "https://netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js" in base_template and "https://www.google-analytics.com/analytics.js" in base_template,
+            "templates/base.html must pin external browser assets to HTTPS URLs",
+            failures)
 
     require("make lint" in readme_text and "make test" in readme_text and "make build" in readme_text and "make check" in readme_text and "scripts/check-baseline.py" in readme_text,
             "README must document the local baseline check",
@@ -164,6 +173,9 @@ def main():
             failures)
     require("Empty Picasa feed responses" in readme_text,
             "README must document the Picasa empty-feed guard",
+            failures)
+    require("External template assets" in readme_text and "explicit HTTPS URLs" in readme_text,
+            "README must document the template external asset HTTPS guard",
             failures)
     require("Instagram pagination URLs" in readme_text and "https://api.instagram.com" in readme_text,
             "README must document the Instagram pagination host guard",
@@ -186,11 +198,14 @@ def main():
     require("Empty Picasa feed responses" in vision_text,
             "VISION must describe the Picasa empty-feed guard",
             failures)
+    require("External template assets" in vision_text and "explicit HTTPS URLs" in vision_text,
+            "VISION must describe the template external asset HTTPS guard",
+            failures)
     require("Instagram pagination host" in vision_text and "https://api.instagram.com" in vision_text,
             "VISION must describe the Instagram pagination host guard",
             failures)
-    require("make lint" in changes_text and "make test" in changes_text and "make build" in changes_text and "access-token query string" in changes_text and "map API cache" in changes_text and "Instagram pagination URLs" in changes_text and "template-facing Glass URL" in changes_text and "embedded credentials or fragments" in changes_text and "empty Picasa feed" in changes_text,
-            "CHANGES must record the API-token, map-cache, URL-parts, and Instagram pagination host fixes",
+    require("make lint" in changes_text and "make test" in changes_text and "make build" in changes_text and "access-token query string" in changes_text and "map API cache" in changes_text and "Instagram pagination URLs" in changes_text and "template-facing Glass URL" in changes_text and "embedded credentials or fragments" in changes_text and "empty Picasa feed" in changes_text and "protocol-relative template asset URLs" in changes_text,
+            "CHANGES must record the API-token, map-cache, URL-parts, Instagram pagination host, and template asset fixes",
             failures)
     require("Resolved" in bug_text and "Authorization header" in bug_text,
             "recorded bug must describe the resolved access-token handling",
@@ -220,6 +235,10 @@ def main():
     picasa_empty_feed_plan_text = PICASA_EMPTY_FEED_PLAN.read_text(encoding="utf-8") if PICASA_EMPTY_FEED_PLAN.exists() else ""
     require("status: completed" in picasa_empty_feed_plan_text,
             "Picasa empty-feed plan must be marked completed",
+            failures)
+    template_external_https_plan_text = TEMPLATE_EXTERNAL_HTTPS_PLAN.read_text(encoding="utf-8") if TEMPLATE_EXTERNAL_HTTPS_PLAN.exists() else ""
+    require("status: completed" in template_external_https_plan_text,
+            "template external asset HTTPS plan must be marked completed",
             failures)
 
     for path in sorted(ROOT.glob("*.py")) + [ROOT / "scripts/check-baseline.py"]:
