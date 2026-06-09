@@ -10,6 +10,7 @@ HTTPS_PLAN = ROOT / "docs/plans/2026-06-09-private-endpoint-https.md"
 HTTPS_HOST_PLAN = ROOT / "docs/plans/2026-06-09-private-endpoint-host-validation.md"
 INSTAGRAM_HOST_PLAN = ROOT / "docs/plans/2026-06-09-instagram-pagination-host-validation.md"
 TEMPLATE_GLASS_PLAN = ROOT / "docs/plans/2026-06-09-template-glass-url-validation.md"
+PRIVATE_URL_PARTS_PLAN = ROOT / "docs/plans/2026-06-09-private-endpoint-url-parts.md"
 BUG = ROOT / "docs/bugs/p2-python-access-token-in-url-query-c765eb4838c12375.md"
 
 
@@ -44,6 +45,7 @@ def main():
         "docs/plans/2026-06-08-legacy-api-baseline.md",
         "docs/plans/2026-06-09-private-endpoint-https.md",
         "docs/plans/2026-06-09-private-endpoint-host-validation.md",
+        "docs/plans/2026-06-09-private-endpoint-url-parts.md",
         "docs/plans/2026-06-09-instagram-pagination-host-validation.md",
         "docs/plans/2026-06-09-template-glass-url-validation.md",
         "docs/bugs/p2-python-access-token-in-url-query-c765eb4838c12375.md",
@@ -68,6 +70,7 @@ def main():
     https_host_plan_text = HTTPS_HOST_PLAN.read_text(encoding="utf-8") if HTTPS_HOST_PLAN.exists() else ""
     instagram_host_plan_text = INSTAGRAM_HOST_PLAN.read_text(encoding="utf-8") if INSTAGRAM_HOST_PLAN.exists() else ""
     template_glass_plan_text = TEMPLATE_GLASS_PLAN.read_text(encoding="utf-8") if TEMPLATE_GLASS_PLAN.exists() else ""
+    private_url_parts_plan_text = PRIVATE_URL_PARTS_PLAN.read_text(encoding="utf-8") if PRIVATE_URL_PARTS_PLAN.exists() else ""
     app_yaml = read("app.yaml")
 
     require("runtime: python27" in app_yaml,
@@ -120,6 +123,9 @@ def main():
     require("def require_https_url" in base_source and "urlparse.urlsplit" in base_source and "parsed.netloc" in base_source,
             "base.py must validate private endpoint URL schemes and hosts",
             failures)
+    require("parsed.username" in base_source and "parsed.password" in base_source and "parsed.fragment" in base_source,
+            "base.py must reject private endpoint URL credentials and fragments",
+            failures)
     require('require_https_url(const.glass_url, "glass_url")' in base_source,
             "base.py must validate the template-facing Glass URL before rendering it",
             failures)
@@ -139,6 +145,9 @@ def main():
     require("private endpoints" in readme_text and "HTTPS URLs with hosts" in readme_text,
             "README must document the private endpoint HTTPS host guard",
             failures)
+    require("no embedded credentials or fragments" in readme_text,
+            "README must document the private endpoint URL-parts guard",
+            failures)
     require("template-facing Glass URL" in readme_text,
             "README must document the template-facing Glass URL guard",
             failures)
@@ -154,14 +163,17 @@ def main():
     require("Private integration endpoints" in vision_text and "HTTPS URLs with hosts" in vision_text,
             "VISION must describe the private endpoint HTTPS host guard",
             failures)
+    require("no embedded credentials or fragments" in vision_text,
+            "VISION must describe the private endpoint URL-parts guard",
+            failures)
     require("template-facing Glass URL" in vision_text,
             "VISION must describe the template-facing Glass URL guard",
             failures)
     require("Instagram pagination host" in vision_text and "https://api.instagram.com" in vision_text,
             "VISION must describe the Instagram pagination host guard",
             failures)
-    require("access-token query string" in changes_text and "map API cache" in changes_text and "Instagram pagination URLs" in changes_text and "template-facing Glass URL" in changes_text,
-            "CHANGES must record the API-token, map-cache, and Instagram pagination host fixes",
+    require("access-token query string" in changes_text and "map API cache" in changes_text and "Instagram pagination URLs" in changes_text and "template-facing Glass URL" in changes_text and "embedded credentials or fragments" in changes_text,
+            "CHANGES must record the API-token, map-cache, URL-parts, and Instagram pagination host fixes",
             failures)
     require("Resolved" in bug_text and "Authorization header" in bug_text,
             "recorded bug must describe the resolved access-token handling",
@@ -180,6 +192,9 @@ def main():
             failures)
     require("status: completed" in template_glass_plan_text,
             "template-facing Glass URL plan must be marked completed",
+            failures)
+    require("status: completed" in private_url_parts_plan_text,
+            "private endpoint URL-parts plan must be marked completed",
             failures)
 
     for path in sorted(ROOT.glob("*.py")) + [ROOT / "scripts/check-baseline.py"]:

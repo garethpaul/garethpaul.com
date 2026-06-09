@@ -5,6 +5,8 @@
 - Added an HTTPS-only guard for private map, Picasa, and Glass endpoint values
   loaded from local `const.py`.
 - Required those private endpoint URLs to include a host before fetching.
+- Rejected embedded credentials or fragments in private endpoint URLs before
+  handlers or templates use them.
 - Required Instagram pagination URLs to stay on `https://api.instagram.com`
   before sending bearer credentials.
 - Validated the template-facing Glass URL before rendering it into stream image
