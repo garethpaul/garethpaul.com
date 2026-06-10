@@ -12,6 +12,15 @@
 	<script type="text/javascript" src="https://netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
 	<link href="/static/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
 	<script src="https://maps.googleapis.com/maps/api/js?key={{ map_api_key }}&sensor=true"></script>
+	<script type="text/javascript">
+	function appendHttpsImage(containerSelector, className, source) {
+		if (typeof source !== "string" || !/^https:\/\//i.test(source)) {
+			return;
+		}
+
+		$("<img>").addClass(className).attr("src", source).appendTo(containerSelector);
+	}
+	</script>
 
 </head>
 <body>

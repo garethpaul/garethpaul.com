@@ -2,6 +2,8 @@
 
 ## 2026-06-10
 
+- Replaced provider-controlled image HTML concatenation with an HTTPS-only DOM
+  helper and encoded Glass token values before browser URL construction.
 - Added a pinned, least-privilege Python 3.10/3.12/3.14 GitHub Actions matrix
   that runs `make check`.
 - Added characterization tests for private endpoint URL validation, Instagram

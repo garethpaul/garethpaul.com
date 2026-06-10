@@ -16,6 +16,7 @@ PICASA_EMPTY_FEED_PLAN = ROOT / "docs/plans/2026-06-09-picasa-empty-feed-guard.m
 TEMPLATE_EXTERNAL_HTTPS_PLAN = ROOT / "docs/plans/2026-06-09-template-external-https.md"
 PICASA_ENTRY_SHAPE_PLAN = ROOT / "docs/plans/2026-06-09-picasa-entry-shape-guard.md"
 CI_CHARACTERIZATION_PLAN = ROOT / "docs/plans/2026-06-10-ci-and-characterization-tests.md"
+TEMPLATE_IMAGE_DOM_PLAN = ROOT / "docs/plans/2026-06-10-template-image-dom-safety.md"
 BUG = ROOT / "docs/bugs/p2-python-access-token-in-url-query-c765eb4838c12375.md"
 
 
@@ -47,8 +48,10 @@ def main():
         "map.py",
         "picasa.py",
         "templates/base.html",
+        "templates/picture.html",
         "templates/stream.html",
         "tests/test_integration_guards.py",
+        "tests/test_template_image_rendering.py",
         "docs/plans/2026-06-08-legacy-api-baseline.md",
         "docs/plans/2026-06-09-private-endpoint-https.md",
         "docs/plans/2026-06-09-private-endpoint-host-validation.md",
@@ -60,6 +63,7 @@ def main():
         "docs/plans/2026-06-09-instagram-pagination-host-validation.md",
         "docs/plans/2026-06-09-template-glass-url-validation.md",
         "docs/plans/2026-06-10-ci-and-characterization-tests.md",
+        "docs/plans/2026-06-10-template-image-dom-safety.md",
         "docs/bugs/p2-python-access-token-in-url-query-c765eb4838c12375.md",
     ]
 
@@ -73,6 +77,8 @@ def main():
     map_source = read("map.py")
     picasa_source = read("picasa.py")
     base_template = read("templates/base.html")
+    picture_template = read("templates/picture.html")
+    stream_template = read("templates/stream.html")
     readme_text = read("README.md")
     vision_text = read("VISION.md")
     changes_text = read("CHANGES.md")
@@ -85,6 +91,7 @@ def main():
     template_glass_plan_text = TEMPLATE_GLASS_PLAN.read_text(encoding="utf-8") if TEMPLATE_GLASS_PLAN.exists() else ""
     private_url_parts_plan_text = PRIVATE_URL_PARTS_PLAN.read_text(encoding="utf-8") if PRIVATE_URL_PARTS_PLAN.exists() else ""
     ci_characterization_plan_text = CI_CHARACTERIZATION_PLAN.read_text(encoding="utf-8") if CI_CHARACTERIZATION_PLAN.exists() else ""
+    template_image_dom_plan_text = TEMPLATE_IMAGE_DOM_PLAN.read_text(encoding="utf-8") if TEMPLATE_IMAGE_DOM_PLAN.exists() else ""
     app_yaml = read("app.yaml")
     makefile_text = read("Makefile")
     workflow_text = read(".github/workflows/check.yml")
@@ -179,6 +186,15 @@ def main():
     require("https://netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" in base_template and "https://netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css" in base_template and "https://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js" in base_template and "https://netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js" in base_template and "https://www.google-analytics.com/analytics.js" in base_template,
             "templates/base.html must pin external browser assets to HTTPS URLs",
             failures)
+    require("function appendHttpsImage" in base_template and 'typeof source !== "string"' in base_template and "/^https:\\/\\//i.test(source)" in base_template and '$("<img>").addClass(className).attr("src", source)' in base_template,
+            "templates must render provider images through the shared HTTPS DOM helper",
+            failures)
+    require('appendHttpsImage(".photos", "instagram", img)' in picture_template and stream_template.count('appendHttpsImage(".photos", "glass",') == 2 and "html +=" not in picture_template + stream_template,
+            "picture and stream templates must not concatenate provider values into HTML",
+            failures)
+    require("encodeURIComponent(val)" in stream_template and '"/img?token=" + val' not in stream_template,
+            "stream template must encode Glass token values before URL construction",
+            failures)
 
     require("make lint" in readme_text and "make test" in readme_text and "make build" in readme_text and "make check" in readme_text and "scripts/check-baseline.py" in readme_text and "tests/test_integration_guards.py" in readme_text,
             "README must document the local baseline and characterization checks",
@@ -200,6 +216,9 @@ def main():
             failures)
     require("Malformed Picasa album entries" in readme_text,
             "README must document the Picasa entry shape guard",
+            failures)
+    require("DOM property assignment" in readme_text and "HTTPS image URLs" in readme_text,
+            "README must document safe provider image rendering",
             failures)
     require("External template assets" in readme_text and "explicit HTTPS URLs" in readme_text,
             "README must document the template external asset HTTPS guard",
@@ -276,6 +295,9 @@ def main():
             failures)
     require("status: completed" in ci_characterization_plan_text,
             "CI and characterization plan must be marked completed",
+            failures)
+    require("status: completed" in template_image_dom_plan_text and "Mutations restoring HTML concatenation or removing token encoding must fail" in template_image_dom_plan_text,
+            "Template image DOM safety plan must record completed mutation verification",
             failures)
 
     python_paths = sorted(ROOT.glob("*.py")) + sorted((ROOT / "tests").glob("*.py")) + [ROOT / "scripts/check-baseline.py"]

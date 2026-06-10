@@ -100,6 +100,8 @@ When the required SDK or runtime is unavailable, use static checks and source re
   while proxying legacy album data.
 - Malformed Picasa album entries are skipped so one partial provider record does
   not break the whole image proxy response.
+- Instagram, Picasa, and Glass image values are accepted only as HTTPS image URLs
+  and assigned through DOM property assignment instead of HTML concatenation.
 
 ## Maintenance Notes
 
@@ -122,6 +124,8 @@ When the required SDK or runtime is unavailable, use static checks and source re
   template asset references.
 - See `docs/plans/2026-06-10-ci-and-characterization-tests.md` for the CI and
   integration characterization baseline.
+- See `docs/plans/2026-06-10-template-image-dom-safety.md` for safe provider
+  image rendering and Glass token encoding.
 
 ## Contributing
 

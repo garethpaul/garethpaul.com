@@ -25,6 +25,8 @@ Priority:
   for access-token query strings, Instagram pagination host checks, HTTPS API
   URLs, Picasa entry parsing, and cache-key guardrails
 - Keep hosted characterization coverage green on Python 3.10, 3.12, and 3.14
+- Render provider image values through HTTPS-only DOM property assignment
+  instead of HTML string concatenation
 - Keep security policy visible for the public site
 
 Next priorities:
@@ -67,6 +69,8 @@ Malformed Picasa album entries should be skipped so partial provider records do
 not break otherwise valid image proxy responses.
 External template assets should continue to use explicit HTTPS URLs for shared
 CSS, JavaScript, and analytics references.
+Provider image feeds should continue to use DOM property assignment and encode
+Glass token values before constructing browser image URLs.
 
 ## What We Will Not Merge (For Now)
 

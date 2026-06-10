@@ -24,24 +24,21 @@
 <!-- GETNARRATIVE -->
 <script type="text/javascript">
 $.getJSON( "api/picasa", function( data ) {
-  html = ""
   $.each(data['data'].slice(0,39), function( key, val ) {
-    var img = val;
-    html += "<img class='glass' src='" + img + "'/>";
+    appendHttpsImage(".photos", "glass", val);
   });
-  $('.photos').append(html);
 });
 </script>
 
 <!-- GLASS -->
 <script type="text/javascript">
   $.getJSON( "api/glass", function( data ) {
-    html = ""
     $.each(data['data'].slice(0,39), function( key, val ) {
-      var img = "{{ glass_url }}/img?token=" + val;
-      html += "<img class='glass' src='" + img + "'/>";
+      if (typeof val === "string") {
+        var img = "{{ glass_url }}/img?token=" + encodeURIComponent(val);
+        appendHttpsImage(".photos", "glass", img);
+      }
     });
-    $('.photos').append(html);
   });
   </script>
 </article>
