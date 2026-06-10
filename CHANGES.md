@@ -1,5 +1,14 @@
 # Changes
 
+## 2026-06-10
+
+- Added a pinned, least-privilege Python 3.10/3.12/3.14 GitHub Actions matrix
+  that runs `make check`.
+- Added characterization tests for private endpoint URL validation, Instagram
+  bearer-token pagination requests, and malformed Picasa entry handling.
+- Updated `make test` and `make check` so local gates run the behavior
+  characterization coverage without App Engine credentials.
+
 ## 2026-06-09
 
 - Skipped malformed Picasa album entries instead of raising when a partial

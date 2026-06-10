@@ -19,6 +19,8 @@ This README is based on the checked-in source, manifests, scripts, and repositor
 - `SECURITY.md` - security reporting and disclosure guidance
 - `static` - source or example code
 - `templates` - source or example code
+- `tests/test_integration_guards.py` - pure-function characterization tests for
+  legacy integration guardrails
 - `VISION.md` - project direction and maintenance guardrails
 
 Additional scan context:
@@ -51,7 +53,7 @@ The deployed app is a legacy Python 2 App Engine application. The private `const
 
 ## Testing and Verification
 
-Run the local static baseline:
+Run the local static baseline and characterization checks:
 
 ```bash
 make lint
@@ -60,10 +62,15 @@ make build
 make check
 ```
 
-The `lint`, `test`, and `build` targets currently delegate to the static
-baseline so every local gate entry point runs the same checks. The baseline runs
-`scripts/check-baseline.py`, verifies Python syntax, checks credential and cache
+The `lint` and `build` targets delegate to `make check`. The `test` target runs
+the dependency-free `tests/test_integration_guards.py` characterization tests.
+The `check` target runs both `scripts/check-baseline.py` and the
+characterization tests, verifies Python syntax, checks credential/cache
 guardrails, and does not require App Engine or private credentials.
+
+GitHub Actions runs the same gate on Python 3.10, 3.12, and 3.14 for pushes and
+pull requests with read-only repository permissions through
+`.github/workflows/check.yml`.
 
 When the required SDK or runtime is unavailable, use static checks and source review first, then verify on a machine that has the matching platform toolchain.
 
@@ -113,6 +120,8 @@ When the required SDK or runtime is unavailable, use static checks and source re
   album entry handling.
 - See `docs/plans/2026-06-09-template-external-https.md` for explicit HTTPS
   template asset references.
+- See `docs/plans/2026-06-10-ci-and-characterization-tests.md` for the CI and
+  integration characterization baseline.
 
 ## Contributing
 
