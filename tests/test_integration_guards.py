@@ -21,9 +21,17 @@ class FakeRequest:
 class FakeResponse:
   def __init__(self, payload=b"{}"):
     self.payload = payload
+    self.closed = False
+    self.read_sizes = []
 
-  def read(self):
-    return self.payload
+  def read(self, size=None):
+    self.read_sizes.append(size)
+    if size is None:
+      return self.payload
+    return self.payload[:size]
+
+  def close(self):
+    self.closed = True
 
 
 class FakeJinjaEnvironment:
@@ -142,6 +150,44 @@ class PrivateEndpointGuardTest(unittest.TestCase):
     self.assertEqual(base.HTTP_TIMEOUT_SECONDS, captured[0][1])
     self.assertEqual(10, base.HTTP_TIMEOUT_SECONDS)
 
+  def test_read_url_accepts_exact_limit_and_closes_response(self):
+    response = FakeResponse(b"x" * base.MAX_PROVIDER_RESPONSE_BYTES)
+    original_open_url = base.open_url
+    self.addCleanup(setattr, base, "open_url", original_open_url)
+    base.open_url = lambda request: response
+
+    payload = base.read_url("https://example.com/provider")
+
+    self.assertEqual(base.MAX_PROVIDER_RESPONSE_BYTES, len(payload))
+    self.assertEqual([base.MAX_PROVIDER_RESPONSE_BYTES + 1], response.read_sizes)
+    self.assertTrue(response.closed)
+
+  def test_read_url_rejects_oversized_payload_and_closes_response(self):
+    response = FakeResponse(b"x" * (base.MAX_PROVIDER_RESPONSE_BYTES + 1))
+    original_open_url = base.open_url
+    self.addCleanup(setattr, base, "open_url", original_open_url)
+    base.open_url = lambda request: response
+
+    with self.assertRaises(ValueError):
+      base.read_url("https://example.com/provider")
+
+    self.assertTrue(response.closed)
+
+  def test_read_url_closes_response_when_read_fails(self):
+    class FailingResponse(FakeResponse):
+      def read(self, size=None):
+        raise IOError("read failed")
+
+    response = FailingResponse()
+    original_open_url = base.open_url
+    self.addCleanup(setattr, base, "open_url", original_open_url)
+    base.open_url = lambda request: response
+
+    with self.assertRaises(IOError):
+      base.read_url("https://example.com/provider")
+
+    self.assertTrue(response.closed)
+
 
 class InstagramGuardTest(unittest.TestCase):
   def test_without_access_token_query_strips_token_and_preserves_other_params(self):
@@ -172,14 +218,14 @@ class InstagramGuardTest(unittest.TestCase):
 
   def test_instagram_request_uses_sanitized_url_and_authorization_header(self):
     captured = []
-    original_open_url = instagram.open_url
-    self.addCleanup(setattr, instagram, "open_url", original_open_url)
+    original_read_url = instagram.read_url
+    self.addCleanup(setattr, instagram, "read_url", original_read_url)
 
-    def fake_open_url(request):
+    def fake_read_url(request):
       captured.append(request)
-      return FakeResponse(b"{}")
+      return b"{}"
 
-    instagram.open_url = fake_open_url
+    instagram.read_url = fake_read_url
 
     instagram.instagram_request(
       "https://api.instagram.com/v1/users/123/media/recent"

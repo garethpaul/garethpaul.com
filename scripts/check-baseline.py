@@ -18,6 +18,7 @@ PICASA_ENTRY_SHAPE_PLAN = ROOT / "docs/plans/2026-06-09-picasa-entry-shape-guard
 CI_CHARACTERIZATION_PLAN = ROOT / "docs/plans/2026-06-10-ci-and-characterization-tests.md"
 TEMPLATE_IMAGE_DOM_PLAN = ROOT / "docs/plans/2026-06-10-template-image-dom-safety.md"
 OUTBOUND_TIMEOUT_PLAN = ROOT / "docs/plans/2026-06-12-outbound-http-timeouts.md"
+PROVIDER_RESPONSE_LIMIT_PLAN = ROOT / "docs/plans/2026-06-12-provider-response-size-limit.md"
 CI_SECURITY_PLAN = ROOT / "docs/plans/2026-06-12-ci-least-privilege-contract.md"
 BUG = ROOT / "docs/bugs/p2-python-access-token-in-url-query-c765eb4838c12375.md"
 
@@ -67,6 +68,7 @@ def main():
         "docs/plans/2026-06-10-ci-and-characterization-tests.md",
         "docs/plans/2026-06-10-template-image-dom-safety.md",
         "docs/plans/2026-06-12-outbound-http-timeouts.md",
+        "docs/plans/2026-06-12-provider-response-size-limit.md",
         "docs/plans/2026-06-12-ci-least-privilege-contract.md",
         "docs/bugs/p2-python-access-token-in-url-query-c765eb4838c12375.md",
     ]
@@ -97,6 +99,7 @@ def main():
     ci_characterization_plan_text = CI_CHARACTERIZATION_PLAN.read_text(encoding="utf-8") if CI_CHARACTERIZATION_PLAN.exists() else ""
     template_image_dom_plan_text = TEMPLATE_IMAGE_DOM_PLAN.read_text(encoding="utf-8") if TEMPLATE_IMAGE_DOM_PLAN.exists() else ""
     outbound_timeout_plan_text = OUTBOUND_TIMEOUT_PLAN.read_text(encoding="utf-8") if OUTBOUND_TIMEOUT_PLAN.exists() else ""
+    provider_response_limit_plan_text = PROVIDER_RESPONSE_LIMIT_PLAN.read_text(encoding="utf-8") if PROVIDER_RESPONSE_LIMIT_PLAN.exists() else ""
     ci_security_plan_text = CI_SECURITY_PLAN.read_text(encoding="utf-8") if CI_SECURITY_PLAN.exists() else ""
     app_yaml = read("app.yaml")
     makefile_text = read("Makefile")
@@ -201,12 +204,18 @@ jobs:
     require("HTTP_TIMEOUT_SECONDS = 10" in base_source and "def open_url(url_or_request):" in base_source and "urllib2.urlopen(url_or_request, timeout=HTTP_TIMEOUT_SECONDS)" in base_source,
             "base.py must enforce the shared 10-second outbound provider timeout",
             failures)
+    require("MAX_PROVIDER_RESPONSE_BYTES = 1024 * 1024" in base_source and "def read_url(url_or_request):" in base_source and "response.read(MAX_PROVIDER_RESPONSE_BYTES + 1)" in base_source and "response.close()" in base_source and "len(payload) > MAX_PROVIDER_RESPONSE_BYTES" in base_source,
+            "base.py must bound and close provider response bodies before JSON decoding",
+            failures)
     provider_sources = [glass_source, instagram_source, map_source, picasa_source]
     require(all("urllib2.urlopen(" not in source for source in provider_sources),
             "provider handlers must not bypass base.open_url with direct urllib2.urlopen calls",
             failures)
-    require(all("open_url(" in source for source in provider_sources),
-            "every provider handler must route outbound requests through base.open_url",
+    require(all("read_url(" in source for source in provider_sources),
+            "every provider handler must route payload reads through base.read_url",
+            failures)
+    require(all(".read()" not in source for source in provider_sources),
+            "provider handlers must not perform unbounded response reads",
             failures)
     require('require_https_url(const.glass_url, "glass_url")' in base_source,
             "base.py must validate the template-facing Glass URL before rendering it",
@@ -226,8 +235,8 @@ jobs:
     require("img_src = picasa_entry_src(i)" in picasa_source and "if img_src:" in picasa_source,
             "picasa.py must skip malformed Picasa entries instead of raising",
             failures)
-    require("base.require_https_url" in integration_guard_tests and "base.open_url" in integration_guard_tests and "base.HTTP_TIMEOUT_SECONDS" in integration_guard_tests and "instagram.instagram_request" in integration_guard_tests and "picasa.picasa_entry_src" in integration_guard_tests,
-            "integration characterization tests must exercise private URL, timeout, Instagram, and Picasa guards",
+    require("base.require_https_url" in integration_guard_tests and "base.open_url" in integration_guard_tests and "base.HTTP_TIMEOUT_SECONDS" in integration_guard_tests and "base.read_url" in integration_guard_tests and "base.MAX_PROVIDER_RESPONSE_BYTES" in integration_guard_tests and "response.closed" in integration_guard_tests and "instagram.instagram_request" in integration_guard_tests and "picasa.picasa_entry_src" in integration_guard_tests,
+            "integration characterization tests must exercise private URL, timeout, response-size, Instagram, and Picasa guards",
             failures)
     require('require_https_url(const.glass_api, "glass_api")' in glass_source,
             "glass.py must validate the private Glass endpoint before fetching it",
@@ -278,8 +287,8 @@ jobs:
     require("Instagram pagination URLs" in readme_text and "https://api.instagram.com" in readme_text,
             "README must document the Instagram pagination host guard",
             failures)
-    require("shared 10-second" in readme_text and "base.open_url" in readme_text,
-            "README must document the outbound provider timeout boundary",
+    require("shared 10-second" in readme_text and "base.open_url" in readme_text and "1 MiB" in readme_text and "base.read_url" in readme_text,
+            "README must document the outbound provider timeout and response-size boundaries",
             failures)
     require("const.py" in readme_text and "Python 2 App Engine" in readme_text,
             "README must document private config and legacy runtime expectations",
@@ -359,6 +368,9 @@ jobs:
             failures)
     require("status: completed" in outbound_timeout_plan_text and "10-second timeout" in outbound_timeout_plan_text and "direct provider `urllib2.urlopen` call" in outbound_timeout_plan_text,
             "Outbound HTTP timeout plan must record the completed deadline and mutation contract",
+            failures)
+    require("status: completed" in provider_response_limit_plan_text and "1 MiB" in provider_response_limit_plan_text and "extra-byte read" in provider_response_limit_plan_text,
+            "Provider response-size plan must record the completed memory and mutation contract",
             failures)
     require("status: completed" in ci_security_plan_text and "persist-credentials: false" in ci_security_plan_text and "duplicate" in ci_security_plan_text,
             "CI least-privilege plan must record the completed credential and duplicate-key mutation contract",

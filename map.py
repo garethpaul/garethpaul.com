@@ -21,7 +21,7 @@ import urllib
 import json
 import cache
 import const
-from base import Base, open_url, require_https_url
+from base import Base, read_url, require_https_url
 
 
 def get_weather(lat,lng):
@@ -37,7 +37,7 @@ def get_weather(lat,lng):
 		"lat": lat,
 		"lon": lng
 	})
-	result = open_url(weather_url).read()
+	result = read_url(weather_url)
 	json_data = json.loads(result)
 	# json output = http://openweathermap.org/API
 	weather = json_data['weather'][0]
@@ -59,7 +59,7 @@ def get_address(lat,lng):
 		"key": const.geocode_key,
 		"sensor": "true"
 	})
-	result = open_url(geocode_url).read()
+	result = read_url(geocode_url)
 	results = json.loads(result).get('results', [])
 	if not results:
 		return ""
@@ -72,7 +72,7 @@ def get_latlng():
 	Returns:
 		Dict object e.g. {"lat": "30.27", "lng": "-97.74"}
 	"""
-	result = open_url(require_https_url(const.map_api, "map_api")).read()
+	result = read_url(require_https_url(const.map_api, "map_api"))
 	lng = json.loads(result)['lng']
 	lat = json.loads(result)['lat']
 	# fuzzify the map - needed for privacy reasons :-)
