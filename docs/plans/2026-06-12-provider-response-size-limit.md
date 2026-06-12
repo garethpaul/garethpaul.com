@@ -53,3 +53,25 @@ failure behavior.
 
 Live provider and App Engine deployment tests remain out of scope because the
 private configuration and unsupported Python 2 runtime are unavailable here.
+
+## Work Completed
+
+- Added a shared 1 MiB provider response limit with one extra detection byte,
+  exact-boundary acceptance, oversized-response rejection, and deterministic
+  response cleanup.
+- Routed every checked-in Instagram, Glass, Picasa, map-location, geocoding,
+  and weather payload through the bounded helper before decoding or caching.
+- Added characterization and static contracts for the size boundary, cleanup,
+  and provider routing behavior.
+
+## Verification Completed
+
+- All four Make gates, 13 characterization tests, Python compilation, and
+  `git diff --check` passed locally.
+- Implementation push run `27393292065` and pull-request run `27393296845`
+  passed at commit `cbd76a513ac8a075f9757bd60d7e62886bd3a517` across Python
+  3.10, 3.12, and 3.14.
+- Post-merge push run `27393311075` and CodeQL run `27402321576` passed at
+  default-branch merge commit `837ee90fbd7998945133512348ca773342864b6a`.
+- Mutations removing the extra-byte read, oversized rejection, response close,
+  or any provider's bounded-helper routing were rejected by the baseline.
