@@ -25,6 +25,7 @@ Priority:
   for access-token query strings, Instagram pagination host checks, HTTPS API
   URLs, Picasa entry parsing, and cache-key guardrails
 - Keep hosted characterization coverage green on Python 3.10, 3.12, and 3.14
+- Keep hosted checks pinned, read-only, credential-free, and non-deploying
 - Keep every outbound provider request behind the shared 10-second deadline
 - Render provider image values through HTTPS-only DOM property assignment
   instead of HTML string concatenation

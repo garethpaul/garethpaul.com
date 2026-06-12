@@ -18,6 +18,7 @@ PICASA_ENTRY_SHAPE_PLAN = ROOT / "docs/plans/2026-06-09-picasa-entry-shape-guard
 CI_CHARACTERIZATION_PLAN = ROOT / "docs/plans/2026-06-10-ci-and-characterization-tests.md"
 TEMPLATE_IMAGE_DOM_PLAN = ROOT / "docs/plans/2026-06-10-template-image-dom-safety.md"
 OUTBOUND_TIMEOUT_PLAN = ROOT / "docs/plans/2026-06-12-outbound-http-timeouts.md"
+CI_SECURITY_PLAN = ROOT / "docs/plans/2026-06-12-ci-least-privilege-contract.md"
 BUG = ROOT / "docs/bugs/p2-python-access-token-in-url-query-c765eb4838c12375.md"
 
 
@@ -66,6 +67,7 @@ def main():
         "docs/plans/2026-06-10-ci-and-characterization-tests.md",
         "docs/plans/2026-06-10-template-image-dom-safety.md",
         "docs/plans/2026-06-12-outbound-http-timeouts.md",
+        "docs/plans/2026-06-12-ci-least-privilege-contract.md",
         "docs/bugs/p2-python-access-token-in-url-query-c765eb4838c12375.md",
     ]
 
@@ -95,6 +97,7 @@ def main():
     ci_characterization_plan_text = CI_CHARACTERIZATION_PLAN.read_text(encoding="utf-8") if CI_CHARACTERIZATION_PLAN.exists() else ""
     template_image_dom_plan_text = TEMPLATE_IMAGE_DOM_PLAN.read_text(encoding="utf-8") if TEMPLATE_IMAGE_DOM_PLAN.exists() else ""
     outbound_timeout_plan_text = OUTBOUND_TIMEOUT_PLAN.read_text(encoding="utf-8") if OUTBOUND_TIMEOUT_PLAN.exists() else ""
+    ci_security_plan_text = CI_SECURITY_PLAN.read_text(encoding="utf-8") if CI_SECURITY_PLAN.exists() else ""
     app_yaml = read("app.yaml")
     makefile_text = read("Makefile")
     workflow_text = read(".github/workflows/check.yml")
@@ -109,8 +112,44 @@ def main():
     require(".PHONY: build check lint test" in makefile_text and "lint build: check" in makefile_text and "python3 -m unittest discover -s tests" in makefile_text,
             "Makefile must expose lint, test, build, and check gate targets with characterization tests",
             failures)
-    require("permissions:\n  contents: read" in workflow_text and "cancel-in-progress: true" in workflow_text and "runs-on: ubuntu-24.04" in workflow_text and "timeout-minutes: 10" in workflow_text and 'python-version: ["3.10", "3.12", "3.14"]' in workflow_text and "actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10" in workflow_text and "actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405" in workflow_text and "make check" in workflow_text,
-            "GitHub Actions must keep the pinned multi-version Python check contract",
+    expected_workflow_text = """name: Check
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: check-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.10", "3.12", "3.14"]
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Run baseline
+        run: make check
+"""
+    require(workflow_text == expected_workflow_text,
+            "GitHub Actions must exactly match the pinned, least-privilege multi-version Python contract",
             failures)
     require("const.py" in gitignore_text and ".env" in gitignore_text,
             "private local configuration files must stay ignored",
@@ -320,6 +359,9 @@ def main():
             failures)
     require("status: completed" in outbound_timeout_plan_text and "10-second timeout" in outbound_timeout_plan_text and "direct provider `urllib2.urlopen` call" in outbound_timeout_plan_text,
             "Outbound HTTP timeout plan must record the completed deadline and mutation contract",
+            failures)
+    require("status: completed" in ci_security_plan_text and "persist-credentials: false" in ci_security_plan_text and "duplicate" in ci_security_plan_text,
+            "CI least-privilege plan must record the completed credential and duplicate-key mutation contract",
             failures)
 
     python_paths = sorted(ROOT.glob("*.py")) + sorted((ROOT / "tests").glob("*.py")) + [ROOT / "scripts/check-baseline.py"]

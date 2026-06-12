@@ -44,6 +44,7 @@
 - Private endpoints loaded from local `const.py`, including map location, Picasa, and Glass URLs, are validated as HTTPS URLs with hosts and no embedded credentials or fragments before the app fetches them.
 - The template-facing Glass URL from `const.py` is also validated as an HTTPS URL with a host and no embedded credentials or fragments before the Stream page renders it into client-side image URLs.
 - All outbound provider calls must use `base.open_url` so the shared 10-second timeout remains enforced; do not add direct handler-level `urllib2.urlopen` calls.
+- Keep `.github/workflows/check.yml` aligned with the exact baseline contract: immutable action pins, read-only permissions, no persisted checkout credentials, no deployment steps, and the documented Python matrix.
 
 ## Agent workflow
 

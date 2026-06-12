@@ -75,7 +75,9 @@ or changing the legacy handler error response.
 
 GitHub Actions runs the same gate on Python 3.10, 3.12, and 3.14 for pushes and
 pull requests with read-only repository permissions through
-`.github/workflows/check.yml`.
+`.github/workflows/check.yml`. Checkout credentials are not persisted, and the
+workflow performs verification only; it does not deploy or access private site
+configuration.
 
 When the required SDK or runtime is unavailable, use static checks and source review first, then verify on a machine that has the matching platform toolchain.
 
@@ -133,6 +135,8 @@ When the required SDK or runtime is unavailable, use static checks and source re
   image rendering and Glass token encoding.
 - See `docs/plans/2026-06-12-outbound-http-timeouts.md` for the shared provider
   request deadline and regression contract.
+- See `docs/plans/2026-06-12-ci-least-privilege-contract.md` for the exact hosted
+  workflow security contract.
 
 ## Contributing
 
