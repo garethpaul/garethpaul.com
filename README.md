@@ -73,6 +73,10 @@ All checked-in outbound provider requests use the shared 10-second
 map-location, geocoding, and weather requests without adding automatic retries
 or changing the legacy handler error response.
 
+Provider payloads are read through `base.read_url`, limited to 1 MiB, and
+closed after each bounded read. Oversized payloads fail before JSON decoding or
+map cache writes.
+
 GitHub Actions runs the same gate on Python 3.10, 3.12, and 3.14 for pushes and
 pull requests with read-only repository permissions through
 `.github/workflows/check.yml`. Checkout credentials are not persisted, and the
@@ -135,6 +139,8 @@ When the required SDK or runtime is unavailable, use static checks and source re
   image rendering and Glass token encoding.
 - See `docs/plans/2026-06-12-outbound-http-timeouts.md` for the shared provider
   request deadline and regression contract.
+- See `docs/plans/2026-06-12-provider-response-size-limit.md` for the shared
+  provider payload memory boundary.
 - See `docs/plans/2026-06-12-ci-least-privilege-contract.md` for the exact hosted
   workflow security contract.
 

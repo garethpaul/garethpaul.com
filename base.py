@@ -16,6 +16,7 @@ import urllib2
 
 
 HTTP_TIMEOUT_SECONDS = 10
+MAX_PROVIDER_RESPONSE_BYTES = 1024 * 1024
 
 JINJA_ENVIRONMENT = jinja2.Environment(
     loader=jinja2.FileSystemLoader("templates"),
@@ -35,6 +36,18 @@ def require_https_url(url, label):
 def open_url(url_or_request):
   """Open an outbound request with the shared provider deadline."""
   return urllib2.urlopen(url_or_request, timeout=HTTP_TIMEOUT_SECONDS)
+
+
+def read_url(url_or_request):
+  """Read and close a provider response within the shared payload limit."""
+  response = open_url(url_or_request)
+  try:
+    payload = response.read(MAX_PROVIDER_RESPONSE_BYTES + 1)
+  finally:
+    response.close()
+  if len(payload) > MAX_PROVIDER_RESPONSE_BYTES:
+    raise ValueError("Provider response exceeds %d bytes" % MAX_PROVIDER_RESPONSE_BYTES)
+  return payload
 
 
 class Base(webapp2.RequestHandler):

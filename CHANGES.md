@@ -2,6 +2,8 @@
 
 ## 2026-06-12
 
+- Limited provider response bodies to 1 MiB, closed responses after bounded
+  reads, and rejected oversized payloads before JSON decoding or cache writes.
 - Added one bounded outbound HTTP helper and routed Instagram, Glass, Picasa,
   map-location, geocoding, and weather requests through its 10-second timeout.
 - Added dependency-free regression coverage for timeout propagation while
