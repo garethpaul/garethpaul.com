@@ -24,12 +24,10 @@
 
 	<script type="text/javascript">
 	$.getJSON( "instagram", function( data ) {
-		html = ""
 		$.each(data.slice(0,39), function( key, val ) {
-			var img = val.images.standard_resolution.url;
-			html += "<img class='instagram' src='" + img + "'/>";
+			var img = val && val.images && val.images.standard_resolution && val.images.standard_resolution.url;
+			appendHttpsImage(".photos", "instagram", img);
 		});
-		$('.photos').append(html);
 	});
 	</script>
 

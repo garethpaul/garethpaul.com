@@ -68,8 +68,9 @@ The `check` target runs both `scripts/check-baseline.py` and the
 characterization tests, verifies Python syntax, checks credential/cache
 guardrails, and does not require App Engine or private credentials.
 
-GitHub Actions runs the same `make check` gate through
-`.github/workflows/check.yml` on pushes and pull requests.
+GitHub Actions runs the same gate on Python 3.10, 3.12, and 3.14 for pushes and
+pull requests with read-only repository permissions through
+`.github/workflows/check.yml`.
 
 When the required SDK or runtime is unavailable, use static checks and source review first, then verify on a machine that has the matching platform toolchain.
 
@@ -99,6 +100,8 @@ When the required SDK or runtime is unavailable, use static checks and source re
   while proxying legacy album data.
 - Malformed Picasa album entries are skipped so one partial provider record does
   not break the whole image proxy response.
+- Instagram, Picasa, and Glass image values are accepted only as HTTPS image URLs
+  and assigned through DOM property assignment instead of HTML concatenation.
 
 ## Maintenance Notes
 
@@ -121,6 +124,8 @@ When the required SDK or runtime is unavailable, use static checks and source re
   template asset references.
 - See `docs/plans/2026-06-10-ci-and-characterization-tests.md` for the CI and
   integration characterization baseline.
+- See `docs/plans/2026-06-10-template-image-dom-safety.md` for safe provider
+  image rendering and Glass token encoding.
 
 ## Contributing
 

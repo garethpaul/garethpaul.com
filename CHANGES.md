@@ -2,7 +2,10 @@
 
 ## 2026-06-10
 
-- Added GitHub Actions CI that runs `make check`.
+- Replaced provider-controlled image HTML concatenation with an HTTPS-only DOM
+  helper and encoded Glass token values before browser URL construction.
+- Added a pinned, least-privilege Python 3.10/3.12/3.14 GitHub Actions matrix
+  that runs `make check`.
 - Added characterization tests for private endpoint URL validation, Instagram
   bearer-token pagination requests, and malformed Picasa entry handling.
 - Updated `make test` and `make check` so local gates run the behavior

@@ -149,6 +149,8 @@ class InstagramGuardTest(unittest.TestCase):
 
   def test_instagram_request_uses_sanitized_url_and_authorization_header(self):
     captured = []
+    original_urlopen = instagram.urllib2.urlopen
+    self.addCleanup(setattr, instagram.urllib2, "urlopen", original_urlopen)
 
     def fake_urlopen(request):
       captured.append(request)
