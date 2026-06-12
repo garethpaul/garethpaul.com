@@ -25,6 +25,7 @@ Priority:
   for access-token query strings, Instagram pagination host checks, HTTPS API
   URLs, Picasa entry parsing, and cache-key guardrails
 - Keep hosted characterization coverage green on Python 3.10, 3.12, and 3.14
+- Keep every outbound provider request behind the shared 10-second deadline
 - Render provider image values through HTTPS-only DOM property assignment
   instead of HTML string concatenation
 - Keep security policy visible for the public site
@@ -71,6 +72,8 @@ External template assets should continue to use explicit HTTPS URLs for shared
 CSS, JavaScript, and analytics references.
 Provider image feeds should continue to use DOM property assignment and encode
 Glass token values before constructing browser image URLs.
+Outbound provider requests should continue to use the shared timeout instead of
+calling `urllib2.urlopen` directly from handlers.
 
 ## What We Will Not Merge (For Now)
 

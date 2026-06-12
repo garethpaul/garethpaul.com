@@ -17,6 +17,7 @@ TEMPLATE_EXTERNAL_HTTPS_PLAN = ROOT / "docs/plans/2026-06-09-template-external-h
 PICASA_ENTRY_SHAPE_PLAN = ROOT / "docs/plans/2026-06-09-picasa-entry-shape-guard.md"
 CI_CHARACTERIZATION_PLAN = ROOT / "docs/plans/2026-06-10-ci-and-characterization-tests.md"
 TEMPLATE_IMAGE_DOM_PLAN = ROOT / "docs/plans/2026-06-10-template-image-dom-safety.md"
+OUTBOUND_TIMEOUT_PLAN = ROOT / "docs/plans/2026-06-12-outbound-http-timeouts.md"
 BUG = ROOT / "docs/bugs/p2-python-access-token-in-url-query-c765eb4838c12375.md"
 
 
@@ -64,6 +65,7 @@ def main():
         "docs/plans/2026-06-09-template-glass-url-validation.md",
         "docs/plans/2026-06-10-ci-and-characterization-tests.md",
         "docs/plans/2026-06-10-template-image-dom-safety.md",
+        "docs/plans/2026-06-12-outbound-http-timeouts.md",
         "docs/bugs/p2-python-access-token-in-url-query-c765eb4838c12375.md",
     ]
 
@@ -92,6 +94,7 @@ def main():
     private_url_parts_plan_text = PRIVATE_URL_PARTS_PLAN.read_text(encoding="utf-8") if PRIVATE_URL_PARTS_PLAN.exists() else ""
     ci_characterization_plan_text = CI_CHARACTERIZATION_PLAN.read_text(encoding="utf-8") if CI_CHARACTERIZATION_PLAN.exists() else ""
     template_image_dom_plan_text = TEMPLATE_IMAGE_DOM_PLAN.read_text(encoding="utf-8") if TEMPLATE_IMAGE_DOM_PLAN.exists() else ""
+    outbound_timeout_plan_text = OUTBOUND_TIMEOUT_PLAN.read_text(encoding="utf-8") if OUTBOUND_TIMEOUT_PLAN.exists() else ""
     app_yaml = read("app.yaml")
     makefile_text = read("Makefile")
     workflow_text = read(".github/workflows/check.yml")
@@ -156,6 +159,16 @@ def main():
     require("parsed.username" in base_source and "parsed.password" in base_source and "parsed.fragment" in base_source,
             "base.py must reject private endpoint URL credentials and fragments",
             failures)
+    require("HTTP_TIMEOUT_SECONDS = 10" in base_source and "def open_url(url_or_request):" in base_source and "urllib2.urlopen(url_or_request, timeout=HTTP_TIMEOUT_SECONDS)" in base_source,
+            "base.py must enforce the shared 10-second outbound provider timeout",
+            failures)
+    provider_sources = [glass_source, instagram_source, map_source, picasa_source]
+    require(all("urllib2.urlopen(" not in source for source in provider_sources),
+            "provider handlers must not bypass base.open_url with direct urllib2.urlopen calls",
+            failures)
+    require(all("open_url(" in source for source in provider_sources),
+            "every provider handler must route outbound requests through base.open_url",
+            failures)
     require('require_https_url(const.glass_url, "glass_url")' in base_source,
             "base.py must validate the template-facing Glass URL before rendering it",
             failures)
@@ -174,8 +187,8 @@ def main():
     require("img_src = picasa_entry_src(i)" in picasa_source and "if img_src:" in picasa_source,
             "picasa.py must skip malformed Picasa entries instead of raising",
             failures)
-    require("base.require_https_url" in integration_guard_tests and "instagram.instagram_request" in integration_guard_tests and "picasa.picasa_entry_src" in integration_guard_tests,
-            "integration characterization tests must exercise private URL, Instagram, and Picasa guards",
+    require("base.require_https_url" in integration_guard_tests and "base.open_url" in integration_guard_tests and "base.HTTP_TIMEOUT_SECONDS" in integration_guard_tests and "instagram.instagram_request" in integration_guard_tests and "picasa.picasa_entry_src" in integration_guard_tests,
+            "integration characterization tests must exercise private URL, timeout, Instagram, and Picasa guards",
             failures)
     require('require_https_url(const.glass_api, "glass_api")' in glass_source,
             "glass.py must validate the private Glass endpoint before fetching it",
@@ -226,6 +239,9 @@ def main():
     require("Instagram pagination URLs" in readme_text and "https://api.instagram.com" in readme_text,
             "README must document the Instagram pagination host guard",
             failures)
+    require("shared 10-second" in readme_text and "base.open_url" in readme_text,
+            "README must document the outbound provider timeout boundary",
+            failures)
     require("const.py" in readme_text and "Python 2 App Engine" in readme_text,
             "README must document private config and legacy runtime expectations",
             failures)
@@ -252,6 +268,9 @@ def main():
             failures)
     require("Instagram pagination host" in vision_text and "https://api.instagram.com" in vision_text,
             "VISION must describe the Instagram pagination host guard",
+            failures)
+    require("shared 10-second deadline" in vision_text and "urllib2.urlopen" in vision_text,
+            "VISION must describe the outbound provider timeout boundary",
             failures)
     require("GitHub Actions" in changes_text and "characterization tests" in changes_text and "make lint" in changes_text and "make test" in changes_text and "make build" in changes_text and "access-token query string" in changes_text and "map API cache" in changes_text and "Instagram pagination URLs" in changes_text and "template-facing Glass URL" in changes_text and "embedded credentials or fragments" in changes_text and "empty Picasa feed" in changes_text and "malformed Picasa album entries" in changes_text and "protocol-relative template asset URLs" in changes_text,
             "CHANGES must record the API-token, map-cache, URL-parts, Instagram pagination host, and template asset fixes",
@@ -298,6 +317,9 @@ def main():
             failures)
     require("status: completed" in template_image_dom_plan_text and "Mutations restoring HTML concatenation or removing token encoding must fail" in template_image_dom_plan_text,
             "Template image DOM safety plan must record completed mutation verification",
+            failures)
+    require("status: completed" in outbound_timeout_plan_text and "10-second timeout" in outbound_timeout_plan_text and "direct provider `urllib2.urlopen` call" in outbound_timeout_plan_text,
+            "Outbound HTTP timeout plan must record the completed deadline and mutation contract",
             failures)
 
     python_paths = sorted(ROOT.glob("*.py")) + sorted((ROOT / "tests").glob("*.py")) + [ROOT / "scripts/check-baseline.py"]
