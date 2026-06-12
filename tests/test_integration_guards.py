@@ -133,13 +133,13 @@ class PrivateEndpointGuardTest(unittest.TestCase):
 
     base.urllib2.urlopen = fake_urlopen
 
-    response = base.open_url("https://example.com/provider")
+    request = FakeRequest("https://example.com/provider")
+    response = base.open_url(request)
 
     self.assertIsInstance(response, FakeResponse)
-    self.assertEqual(
-      [("https://example.com/provider", base.HTTP_TIMEOUT_SECONDS)],
-      captured,
-    )
+    self.assertEqual(1, len(captured))
+    self.assertIs(request, captured[0][0])
+    self.assertEqual(base.HTTP_TIMEOUT_SECONDS, captured[0][1])
     self.assertEqual(10, base.HTTP_TIMEOUT_SECONDS)
 
 
