@@ -12,10 +12,9 @@ Todo:
 
 """
 import main
-import urllib2
 import json
 import const
-from base import Base, require_https_url
+from base import Base, open_url, require_https_url
 
 
 def picasa_entry_src(entry):
@@ -31,7 +30,7 @@ def picasa_entry_src(entry):
 class PicasaHandler(Base):
   def get(self):
     """ work as a proxy for the glass images api """
-    result = urllib2.urlopen(require_https_url(const.picasa_api, "picasa_api")).read()
+    result = open_url(require_https_url(const.picasa_api, "picasa_api")).read()
     self.response.headers['Content-Type'] = 'application/json'
     data = json.loads(result)
     entries = data.get('feed', {}).get('entry', [])

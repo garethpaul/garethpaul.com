@@ -68,9 +68,16 @@ The `check` target runs both `scripts/check-baseline.py` and the
 characterization tests, verifies Python syntax, checks credential/cache
 guardrails, and does not require App Engine or private credentials.
 
+All checked-in outbound provider requests use the shared 10-second
+`base.open_url` deadline. This bounds stalled Instagram, Glass, Picasa,
+map-location, geocoding, and weather requests without adding automatic retries
+or changing the legacy handler error response.
+
 GitHub Actions runs the same gate on Python 3.10, 3.12, and 3.14 for pushes and
 pull requests with read-only repository permissions through
-`.github/workflows/check.yml`.
+`.github/workflows/check.yml`. Checkout credentials are not persisted, and the
+workflow performs verification only; it does not deploy or access private site
+configuration.
 
 When the required SDK or runtime is unavailable, use static checks and source review first, then verify on a machine that has the matching platform toolchain.
 
@@ -126,6 +133,10 @@ When the required SDK or runtime is unavailable, use static checks and source re
   integration characterization baseline.
 - See `docs/plans/2026-06-10-template-image-dom-safety.md` for safe provider
   image rendering and Glass token encoding.
+- See `docs/plans/2026-06-12-outbound-http-timeouts.md` for the shared provider
+  request deadline and regression contract.
+- See `docs/plans/2026-06-12-ci-least-privilege-contract.md` for the exact hosted
+  workflow security contract.
 
 ## Contributing
 

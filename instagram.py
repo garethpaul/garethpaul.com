@@ -6,7 +6,7 @@ import urllib
 import urllib2
 import json
 import const
-from base import Base
+from base import Base, open_url
 
 INSTAGRAM_RECENT_MEDIA_URL = (
 	"https://api.instagram.com/v1/users/" + str(const.instagram_id) + "/media/recent"
@@ -43,7 +43,7 @@ def instagram_request(url):
 	api_url = require_instagram_api_url(_without_access_token_query(url))
 	request = urllib2.Request(api_url)
 	request.add_header("Authorization", "Bearer " + const.instagram_access_token)
-	return urllib2.urlopen(request)
+	return open_url(request)
 
 
 def instagram_json(url):

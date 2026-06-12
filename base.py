@@ -12,6 +12,10 @@ import jinja2
 import const
 import json
 import urlparse
+import urllib2
+
+
+HTTP_TIMEOUT_SECONDS = 10
 
 JINJA_ENVIRONMENT = jinja2.Environment(
     loader=jinja2.FileSystemLoader("templates"),
@@ -26,6 +30,11 @@ def require_https_url(url, label):
       parsed.username or parsed.password or parsed.fragment):
     raise ValueError("%s must use an HTTPS URL with a host and no embedded credentials or fragment" % label)
   return url
+
+
+def open_url(url_or_request):
+  """Open an outbound request with the shared provider deadline."""
+  return urllib2.urlopen(url_or_request, timeout=HTTP_TIMEOUT_SECONDS)
 
 
 class Base(webapp2.RequestHandler):

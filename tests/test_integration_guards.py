@@ -47,7 +47,7 @@ def install_legacy_stubs():
 
   urllib2_module = types.ModuleType("urllib2")
   urllib2_module.Request = FakeRequest
-  urllib2_module.urlopen = lambda request: FakeResponse()
+  urllib2_module.urlopen = lambda request, timeout=None: FakeResponse()
   sys.modules["urllib2"] = urllib2_module
 
   const_module = types.ModuleType("const")
@@ -56,6 +56,9 @@ def install_legacy_stubs():
   const_module.instagram_id = "123"
   const_module.instagram_access_token = "secret-token"
   const_module.picasa_api = "https://example.com/picasa"
+  const_module.glass_api = "https://example.com/glass-api"
+  const_module.map_api = "https://example.com/map-api"
+  const_module.geocode_key = "geocode-key"
   sys.modules["const"] = const_module
 
   google_module = types.ModuleType("google")
@@ -119,6 +122,26 @@ class PrivateEndpointGuardTest(unittest.TestCase):
         with self.assertRaises(ValueError):
           base.require_https_url(url, "map_api")
 
+  def test_open_url_uses_shared_timeout(self):
+    captured = []
+    original_urlopen = base.urllib2.urlopen
+    self.addCleanup(setattr, base.urllib2, "urlopen", original_urlopen)
+
+    def fake_urlopen(request, timeout=None):
+      captured.append((request, timeout))
+      return FakeResponse()
+
+    base.urllib2.urlopen = fake_urlopen
+
+    request = FakeRequest("https://example.com/provider")
+    response = base.open_url(request)
+
+    self.assertIsInstance(response, FakeResponse)
+    self.assertEqual(1, len(captured))
+    self.assertIs(request, captured[0][0])
+    self.assertEqual(base.HTTP_TIMEOUT_SECONDS, captured[0][1])
+    self.assertEqual(10, base.HTTP_TIMEOUT_SECONDS)
+
 
 class InstagramGuardTest(unittest.TestCase):
   def test_without_access_token_query_strips_token_and_preserves_other_params(self):
@@ -149,14 +172,14 @@ class InstagramGuardTest(unittest.TestCase):
 
   def test_instagram_request_uses_sanitized_url_and_authorization_header(self):
     captured = []
-    original_urlopen = instagram.urllib2.urlopen
-    self.addCleanup(setattr, instagram.urllib2, "urlopen", original_urlopen)
+    original_open_url = instagram.open_url
+    self.addCleanup(setattr, instagram, "open_url", original_open_url)
 
-    def fake_urlopen(request):
+    def fake_open_url(request):
       captured.append(request)
       return FakeResponse(b"{}")
 
-    instagram.urllib2.urlopen = fake_urlopen
+    instagram.open_url = fake_open_url
 
     instagram.instagram_request(
       "https://api.instagram.com/v1/users/123/media/recent"

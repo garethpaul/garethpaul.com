@@ -18,11 +18,10 @@ ApiHandler:
 from google.appengine.api import memcache
 import main
 import urllib
-import urllib2
 import json
 import cache
 import const
-from base import Base, require_https_url
+from base import Base, open_url, require_https_url
 
 
 def get_weather(lat,lng):
@@ -38,7 +37,7 @@ def get_weather(lat,lng):
 		"lat": lat,
 		"lon": lng
 	})
-	result = urllib2.urlopen(weather_url).read()
+	result = open_url(weather_url).read()
 	json_data = json.loads(result)
 	# json output = http://openweathermap.org/API
 	weather = json_data['weather'][0]
@@ -60,7 +59,7 @@ def get_address(lat,lng):
 		"key": const.geocode_key,
 		"sensor": "true"
 	})
-	result = urllib2.urlopen(geocode_url).read()
+	result = open_url(geocode_url).read()
 	results = json.loads(result).get('results', [])
 	if not results:
 		return ""
@@ -73,7 +72,7 @@ def get_latlng():
 	Returns:
 		Dict object e.g. {"lat": "30.27", "lng": "-97.74"}
 	"""
-	result = urllib2.urlopen(require_https_url(const.map_api, "map_api")).read()
+	result = open_url(require_https_url(const.map_api, "map_api")).read()
 	lng = json.loads(result)['lng']
 	lat = json.loads(result)['lat']
 	# fuzzify the map - needed for privacy reasons :-)

@@ -43,6 +43,13 @@ Picasa album proxy parsing should skip malformed entries rather than letting one
 partial provider record fail the full image response.
 Provider-controlled image values should be restricted to HTTPS and assigned
 through DOM properties rather than interpreted as HTML strings.
+Outbound provider requests use a shared 10-second timeout so a stalled service
+cannot retain a legacy App Engine request handler indefinitely. Keep Instagram
+authorization headers and private endpoint validation intact when changing this
+network boundary.
+GitHub Actions uses read-only repository permissions, immutable action pins,
+and disabled checkout credential persistence. Ordinary push and pull-request
+checks must remain verification-only and must not receive deployment secrets.
 
 ## Dependency and Supply Chain Security
 

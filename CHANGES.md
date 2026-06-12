@@ -1,5 +1,14 @@
 # Changes
 
+## 2026-06-12
+
+- Added one bounded outbound HTTP helper and routed Instagram, Glass, Picasa,
+  map-location, geocoding, and weather requests through its 10-second timeout.
+- Added dependency-free regression coverage for timeout propagation while
+  preserving Instagram bearer-header request behavior.
+- Disabled checkout credential persistence and made the pinned Python matrix an
+  exact baseline contract that rejects duplicate or weakened workflow keys.
+
 ## 2026-06-10
 
 - Replaced provider-controlled image HTML concatenation with an HTTPS-only DOM
