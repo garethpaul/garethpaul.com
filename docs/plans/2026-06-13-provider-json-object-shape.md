@@ -1,6 +1,6 @@
 # Provider JSON Object Shape Boundary
 
-status: in_progress
+status: completed
 
 ## Context
 
@@ -40,3 +40,27 @@ The helper intentionally changes only malformed or unexpected provider
 responses. A rollback removes the helper and restores the existing direct
 decodes; no data migration, cache format change, credential change, or deploy
 operation is involved.
+
+## Work Completed
+
+- Added shared bounded-read and decode helpers with one top-level object guard.
+- Routed Instagram, Glass, Picasa, map-location, geocoding, and weather parsing
+  through the shared decoder while preserving successful payload behavior.
+- Added accepted-object, malformed-JSON, and all non-object JSON type coverage.
+- Extended the static baseline and synchronized repository documentation.
+
+## Verification Completed
+
+- The 14 focused integration characterization tests passed.
+- All four Make gates and all 16 characterization tests passed.
+- Python 3 and Python 2 compilation passed for the production modules; Python 3
+  also compiled the tests and checker.
+- The non-object JSON mutation failed with `ValueError not raised` assertions.
+- The direct provider `json.loads` mutation failed with the shared-decoder
+  baseline error.
+- The removed non-object test-contract mutation failed with the expected
+  characterization coverage error.
+- Plan status and completed-evidence mutations failed with the plan verification
+  contract error.
+- The hosted pull-request and CodeQL snapshot is recorded separately after push;
+  this plan claims only the completed pre-push verification above.

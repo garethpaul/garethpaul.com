@@ -6,7 +6,7 @@ import urllib
 import urllib2
 import json
 import const
-from base import Base, read_url
+from base import Base, decode_json_object, read_url
 
 INSTAGRAM_RECENT_MEDIA_URL = (
 	"https://api.instagram.com/v1/users/" + str(const.instagram_id) + "/media/recent"
@@ -47,7 +47,7 @@ def instagram_request(url):
 
 
 def instagram_json(url):
-	return json.loads(instagram_request(url))
+	return decode_json_object(instagram_request(url))
 
 
 class InstagramHandler(Base):

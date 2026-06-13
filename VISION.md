@@ -28,6 +28,7 @@ Priority:
 - Keep hosted checks pinned, read-only, credential-free, and non-deploying
 - Keep every outbound provider request behind the shared 10-second deadline
 - Keep provider payload reads behind the shared 1 MiB response limit
+- Require provider JSON to decode to top-level objects through one shared parser
 - Render provider image values through HTTPS-only DOM property assignment
   instead of HTML string concatenation
 - Keep security policy visible for the public site
@@ -78,6 +79,8 @@ Outbound provider requests should continue to use the shared timeout instead of
 calling `urllib2.urlopen` directly from handlers.
 Provider handlers should continue to use the shared bounded response reader
 instead of calling `read()` directly.
+Provider handlers should continue to reject malformed JSON and non-object
+top-level values before accessing provider fields.
 
 ## What We Will Not Merge (For Now)
 

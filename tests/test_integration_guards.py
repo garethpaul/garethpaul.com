@@ -188,6 +188,34 @@ class PrivateEndpointGuardTest(unittest.TestCase):
 
     self.assertTrue(response.closed)
 
+  def test_read_json_object_accepts_object_payload(self):
+    original_read_url = base.read_url
+    self.addCleanup(setattr, base, "read_url", original_read_url)
+    base.read_url = lambda request: b'{"status": "ok"}'
+
+    self.assertEqual(
+      {"status": "ok"},
+      base.read_json_object("https://example.com/provider"),
+    )
+
+  def test_read_json_object_rejects_malformed_json(self):
+    original_read_url = base.read_url
+    self.addCleanup(setattr, base, "read_url", original_read_url)
+    base.read_url = lambda request: b'{"status"'
+
+    with self.assertRaises(ValueError):
+      base.read_json_object("https://example.com/provider")
+
+  def test_read_json_object_rejects_non_object_json(self):
+    original_read_url = base.read_url
+    self.addCleanup(setattr, base, "read_url", original_read_url)
+
+    for payload in (b'[]', b'"value"', b'1', b'true', b'null'):
+      with self.subTest(payload=payload):
+        base.read_url = lambda request, payload=payload: payload
+        with self.assertRaises(ValueError):
+          base.read_json_object("https://example.com/provider")
+
 
 class InstagramGuardTest(unittest.TestCase):
   def test_without_access_token_query_strips_token_and_preserves_other_params(self):

@@ -77,6 +77,9 @@ Provider payloads are read through `base.read_url`, limited to 1 MiB, and
 closed after each bounded read. Oversized payloads fail before JSON decoding or
 map cache writes.
 
+Provider JSON then passes through one shared decoder that rejects malformed or
+non-object top-level values before handlers access expected fields.
+
 GitHub Actions runs the same gate on Python 3.10, 3.12, and 3.14 for pushes and
 pull requests with read-only repository permissions through
 `.github/workflows/check.yml`. Checkout credentials are not persisted, and the
@@ -111,6 +114,8 @@ When the required SDK or runtime is unavailable, use static checks and source re
   while proxying legacy album data.
 - Malformed Picasa album entries are skipped so one partial provider record does
   not break the whole image proxy response.
+- Provider integrations require top-level JSON objects; arrays, scalars, and
+  null values are rejected at the shared parser boundary.
 - Instagram, Picasa, and Glass image values are accepted only as HTTPS image URLs
   and assigned through DOM property assignment instead of HTML concatenation.
 
@@ -141,6 +146,8 @@ When the required SDK or runtime is unavailable, use static checks and source re
   request deadline and regression contract.
 - See `docs/plans/2026-06-12-provider-response-size-limit.md` for the shared
   provider payload memory boundary.
+- See `docs/plans/2026-06-13-provider-json-object-shape.md` for shared provider
+  JSON shape validation.
 - See `docs/plans/2026-06-12-ci-least-privilege-contract.md` for the exact hosted
   workflow security contract.
 

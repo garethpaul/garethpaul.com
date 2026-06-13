@@ -14,12 +14,11 @@ Todo:
 import main
 import json
 import const
-from base import Base, read_url, require_https_url
+from base import Base, read_json_object, require_https_url
 
 class GlassHandler(Base):
   def get(self):
     """ work as a proxy for the glass images api """
-    result = read_url(require_https_url(const.glass_api, "glass_api"))
+    data = read_json_object(require_https_url(const.glass_api, "glass_api"))
     self.response.headers['Content-Type'] = 'application/json'
-    data = json.loads(result)
     self.response.out.write(json.dumps(data))
