@@ -68,6 +68,10 @@ The `check` target runs both `scripts/check-baseline.py` and the
 characterization tests, verifies Python syntax, checks credential/cache
 guardrails, and does not require App Engine or private credentials.
 
+Use the absolute Makefile path to run the same gates from another working
+directory. Every Make recipe enters the repository root before launching the
+checker or unittest discovery.
+
 All checked-in outbound provider requests use the shared 10-second
 `base.open_url` deadline. This bounds stalled Instagram, Glass, Picasa,
 map-location, geocoding, and weather requests without adding automatic retries

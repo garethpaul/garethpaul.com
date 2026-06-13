@@ -1,7 +1,7 @@
 ---
 title: Location-Independent Legacy API Verification
 date: 2026-06-13
-status: planned
+status: completed
 execution: code
 ---
 
@@ -50,8 +50,27 @@ credential, timeout, response-size, schema, template, and workflow behavior.
 
 ## Work Completed
 
-Pending implementation.
+- Derived the repository root from the loaded Makefile and ran checker and
+  unittest commands from that root for every gate.
+- Extended the Python baseline with rooted-Makefile, completed-plan,
+  external-run, and synchronized-guidance contracts.
+- Preserved production Python, templates, dependencies, private configuration,
+  and workflow files unchanged.
 
 ## Verification Completed
 
-Pending implementation and validation. Run `make check` before completion.
+- The focused integration file ran 18 tests and the complete suite ran 20 tests.
+- All four Make gates (`make lint`, `make test`, `make build`, and `make check`)
+  passed at repository root and from /tmp through the absolute Makefile path.
+- The root-derivation mutation failed.
+- The checker-command mutation failed.
+- The unittest-command mutation failed.
+- The plan-status mutation failed.
+- The plan-evidence mutation failed.
+- The documentation mutation failed.
+- Python 3 and Python 2 production-module compilation, workflow parsing,
+  `git diff --check`, exact intended-path review, added-line secret scanning,
+  and generated-artifact inspection passed.
+- Live App Engine routes and private provider integrations were unavailable
+  without the intentionally absent `const.py` and credentials and are not
+  claimed.
