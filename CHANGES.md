@@ -2,6 +2,8 @@
 
 ## 2026-06-13
 
+- Normalized malformed Picasa feed objects and non-list entry containers to the
+  existing empty image-list response before iteration.
 - Required all provider JSON responses to decode to top-level objects through a
   shared parser before handlers access provider fields.
 

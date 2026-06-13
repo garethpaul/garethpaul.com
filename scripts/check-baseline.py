@@ -22,6 +22,7 @@ OUTBOUND_TIMEOUT_PLAN = ROOT / "docs/plans/2026-06-12-outbound-http-timeouts.md"
 PROVIDER_RESPONSE_LIMIT_PLAN = ROOT / "docs/plans/2026-06-12-provider-response-size-limit.md"
 CI_SECURITY_PLAN = ROOT / "docs/plans/2026-06-12-ci-least-privilege-contract.md"
 PROVIDER_JSON_OBJECT_PLAN = ROOT / "docs/plans/2026-06-13-provider-json-object-shape.md"
+PICASA_FEED_SHAPE_PLAN = ROOT / "docs/plans/2026-06-13-picasa-feed-container-shape.md"
 BUG = ROOT / "docs/bugs/p2-python-access-token-in-url-query-c765eb4838c12375.md"
 
 
@@ -73,6 +74,7 @@ def main():
         "docs/plans/2026-06-12-provider-response-size-limit.md",
         "docs/plans/2026-06-12-ci-least-privilege-contract.md",
         "docs/plans/2026-06-13-provider-json-object-shape.md",
+        "docs/plans/2026-06-13-picasa-feed-container-shape.md",
         "docs/bugs/p2-python-access-token-in-url-query-c765eb4838c12375.md",
     ]
 
@@ -89,8 +91,10 @@ def main():
     picture_template = read("templates/picture.html")
     stream_template = read("templates/stream.html")
     readme_text = read("README.md")
+    security_text = read("SECURITY.md")
     vision_text = read("VISION.md")
     changes_text = read("CHANGES.md")
+    agents_text = read("AGENTS.md")
     gitignore_text = read(".gitignore")
     bug_text = BUG.read_text(encoding="utf-8") if BUG.exists() else ""
     plan_text = PLAN.read_text(encoding="utf-8") if PLAN.exists() else ""
@@ -105,6 +109,7 @@ def main():
     provider_response_limit_plan_text = PROVIDER_RESPONSE_LIMIT_PLAN.read_text(encoding="utf-8") if PROVIDER_RESPONSE_LIMIT_PLAN.exists() else ""
     ci_security_plan_text = CI_SECURITY_PLAN.read_text(encoding="utf-8") if CI_SECURITY_PLAN.exists() else ""
     provider_json_object_plan_text = PROVIDER_JSON_OBJECT_PLAN.read_text(encoding="utf-8") if PROVIDER_JSON_OBJECT_PLAN.exists() else ""
+    picasa_feed_shape_plan_text = PICASA_FEED_SHAPE_PLAN.read_text(encoding="utf-8") if PICASA_FEED_SHAPE_PLAN.exists() else ""
     app_yaml = read("app.yaml")
     makefile_text = read("Makefile")
     workflow_text = read(".github/workflows/check.yml")
@@ -237,8 +242,11 @@ jobs:
     require('require_https_url(const.picasa_api, "picasa_api")' in picasa_source,
             "picasa.py must validate the private Picasa endpoint before fetching it",
             failures)
-    require("data.get('feed', {}).get('entry', [])" in picasa_source,
-            "picasa.py must handle empty or missing Picasa feed entries",
+    require("def picasa_entries(data):" in picasa_source
+            and "isinstance(feed, dict)" in picasa_source
+            and "isinstance(entries, list)" in picasa_source
+            and "entries = picasa_entries(data)" in picasa_source,
+            "picasa.py must normalize malformed feed and entry containers before iteration",
             failures)
     require("def picasa_entry_src" in picasa_source and "isinstance(entry, dict)" in picasa_source and "isinstance(content, dict)" in picasa_source,
             "picasa.py must parse album entry image sources through a shape guard",
@@ -246,8 +254,12 @@ jobs:
     require("img_src = picasa_entry_src(i)" in picasa_source and "if img_src:" in picasa_source,
             "picasa.py must skip malformed Picasa entries instead of raising",
             failures)
-    require("base.require_https_url" in integration_guard_tests and "base.open_url" in integration_guard_tests and "base.HTTP_TIMEOUT_SECONDS" in integration_guard_tests and "base.read_url" in integration_guard_tests and "base.MAX_PROVIDER_RESPONSE_BYTES" in integration_guard_tests and "response.closed" in integration_guard_tests and "instagram.instagram_request" in integration_guard_tests and "picasa.picasa_entry_src" in integration_guard_tests,
+    require("base.require_https_url" in integration_guard_tests and "base.open_url" in integration_guard_tests and "base.HTTP_TIMEOUT_SECONDS" in integration_guard_tests and "base.read_url" in integration_guard_tests and "base.MAX_PROVIDER_RESPONSE_BYTES" in integration_guard_tests and "response.closed" in integration_guard_tests and "instagram.instagram_request" in integration_guard_tests and "picasa.picasa_entries" in integration_guard_tests and "picasa.picasa_entry_src" in integration_guard_tests,
             "integration characterization tests must exercise private URL, timeout, response-size, Instagram, and Picasa guards",
+            failures)
+    require("test_picasa_entries_returns_expected_entry_list" in integration_guard_tests
+            and "test_picasa_entries_ignores_malformed_feed_containers" in integration_guard_tests,
+            "integration characterization tests must cover valid and malformed Picasa feed containers",
             failures)
     require("test_read_json_object_accepts_object_payload" in integration_guard_tests and "test_read_json_object_rejects_malformed_json" in integration_guard_tests and "test_read_json_object_rejects_non_object_json" in integration_guard_tests and "b'[]'" in integration_guard_tests and "b'null'" in integration_guard_tests,
             "integration characterization tests must cover accepted objects, malformed JSON, and non-object JSON values",
@@ -292,6 +304,9 @@ jobs:
     require("Malformed Picasa album entries" in readme_text,
             "README must document the Picasa entry shape guard",
             failures)
+    require("Malformed Picasa `feed` objects" in readme_text and "non-list `feed.entry` values" in readme_text,
+            "README must document the Picasa feed-container shape guard",
+            failures)
     require("DOM property assignment" in readme_text and "HTTPS image URLs" in readme_text,
             "README must document safe provider image rendering",
             failures)
@@ -324,6 +339,14 @@ jobs:
             failures)
     require("Malformed Picasa album entries" in vision_text,
             "VISION must describe the Picasa entry shape guard",
+            failures)
+    require("Malformed Picasa feed objects" in vision_text and "non-list entry containers" in vision_text,
+            "VISION must describe the Picasa feed-container shape guard",
+            failures)
+    require("Picasa feed containers should be type-checked" in security_text
+            and "Normalize malformed Picasa feed objects" in agents_text
+            and "Normalized malformed Picasa feed objects" in changes_text,
+            "Project guidance must document the Picasa feed-container shape guard",
             failures)
     require("External template assets" in vision_text and "explicit HTTPS URLs" in vision_text,
             "VISION must describe the template external asset HTTPS guard",
@@ -429,6 +452,28 @@ jobs:
             and all(item in provider_json_verification for item in provider_json_required_evidence)
             and re.search(r"\b(?:pending|todo|tbd|not run)\b", provider_json_verification, re.IGNORECASE) is None,
             "Provider JSON object-shape plan must record completed status and actual verification",
+            failures)
+    picasa_feed_statuses = re.findall(
+        r"^status: .+$", picasa_feed_shape_plan_text, flags=re.MULTILINE
+    )
+    picasa_feed_sections = picasa_feed_shape_plan_text.split(
+        "## Verification Completed\n", 1
+    )
+    picasa_feed_verification = (
+        picasa_feed_sections[1] if len(picasa_feed_sections) == 2 else ""
+    )
+    picasa_feed_required_evidence = (
+        "focused and all characterization tests passed",
+        "All four Make gates passed",
+        "feed-type guard mutation failed",
+        "entry-list guard mutation failed",
+        "handler bypass mutation failed",
+        "hosted push, pull-request, and CodeQL snapshot",
+    )
+    require(picasa_feed_statuses == ["status: completed"]
+            and all(item in picasa_feed_verification for item in picasa_feed_required_evidence)
+            and re.search(r"\b(?:pending|todo|tbd|not run)\b", picasa_feed_verification, re.IGNORECASE) is None,
+            "Picasa feed-container plan must record completed status and actual verification",
             failures)
 
     python_paths = sorted(ROOT.glob("*.py")) + sorted((ROOT / "tests").glob("*.py")) + [ROOT / "scripts/check-baseline.py"]
