@@ -1,7 +1,7 @@
 ---
 title: Instagram Container Shape
 date: 2026-06-13
-status: planned
+status: completed
 execution: code
 ---
 
@@ -52,8 +52,25 @@ timeouts, response limits, or valid media ordering.
 
 ## Work Completed
 
-Pending implementation.
+- Added one Instagram page helper that accepts only object pagination and list
+  media containers.
+- Routed both initial and optional second-page data through the helper before
+  pagination or list concatenation.
+- Added valid and malformed container characterization plus static,
+  documentation, and completed-plan contracts.
 
 ## Verification Completed
 
-Pending implementation and verification.
+- The focused and all characterization tests passed: the integration file ran
+  18 tests and the full suite ran 20 tests on Python 3.
+- All four Make gates passed.
+- The pagination-object guard mutation failed after removing the dictionary
+  check.
+- The media-list guard mutation failed after removing the list check.
+- The second-page helper bypass mutation failed after restoring direct second
+  page `data` access.
+- Python compilation, workflow parsing, `git diff --check`, and intended-file
+  artifact and secret scans passed.
+- The hosted push, pull-request, and code-scanning snapshot is a post-push
+  evidence step; its bounded exact-head result is recorded after the
+  implementation commit.
