@@ -218,6 +218,29 @@ class PrivateEndpointGuardTest(unittest.TestCase):
 
 
 class InstagramGuardTest(unittest.TestCase):
+  def test_instagram_page_returns_expected_pagination_and_media(self):
+    media = [{"id": "one"}]
+
+    self.assertEqual(
+      ("https://api.instagram.com/v1/next", media),
+      instagram.instagram_page({
+        "pagination": {"next_url": "https://api.instagram.com/v1/next"},
+        "data": media,
+      }),
+    )
+
+  def test_instagram_page_ignores_malformed_containers(self):
+    malformed_payloads = [
+      {},
+      {"pagination": None, "data": None},
+      {"pagination": [], "data": {}},
+      {"pagination": "invalid", "data": "invalid"},
+    ]
+
+    for payload in malformed_payloads:
+      with self.subTest(payload=payload):
+        self.assertEqual((None, []), instagram.instagram_page(payload))
+
   def test_without_access_token_query_strips_token_and_preserves_other_params(self):
     url = (
       "https://api.instagram.com/v1/users/123/media/recent"

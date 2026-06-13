@@ -101,6 +101,8 @@ When the required SDK or runtime is unavailable, use static checks and source re
 - Instagram access tokens must not be placed in URL query strings. The checked-in proxy strips token query values from pagination URLs and sends the token through an authorization header.
 - Instagram pagination URLs must remain on `https://api.instagram.com` before
   the proxy sends the bearer token header.
+- Malformed Instagram pagination objects or non-list media containers normalize
+  to no next page and an empty media list before either page is combined.
 - Map API responses cache by request path/query and weather/geocode URLs are built with structured HTTPS query encoding.
 - Private endpoints loaded from local `const.py`, including map location,
   Picasa, and Glass URLs, are validated as HTTPS URLs with hosts and no

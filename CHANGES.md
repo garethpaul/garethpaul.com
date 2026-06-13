@@ -2,6 +2,8 @@
 
 ## 2026-06-13
 
+- Normalized malformed Instagram pagination and media containers on both pages
+  before following pagination or combining provider values.
 - Normalized malformed Picasa feed objects and non-list entry containers to the
   existing empty image-list response before iteration.
 - Required all provider JSON responses to decode to top-level objects through a
