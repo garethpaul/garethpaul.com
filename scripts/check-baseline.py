@@ -21,6 +21,7 @@ TEMPLATE_IMAGE_DOM_PLAN = ROOT / "docs/plans/2026-06-10-template-image-dom-safet
 OUTBOUND_TIMEOUT_PLAN = ROOT / "docs/plans/2026-06-12-outbound-http-timeouts.md"
 PROVIDER_RESPONSE_LIMIT_PLAN = ROOT / "docs/plans/2026-06-12-provider-response-size-limit.md"
 CI_SECURITY_PLAN = ROOT / "docs/plans/2026-06-12-ci-least-privilege-contract.md"
+PROVIDER_JSON_OBJECT_PLAN = ROOT / "docs/plans/2026-06-13-provider-json-object-shape.md"
 BUG = ROOT / "docs/bugs/p2-python-access-token-in-url-query-c765eb4838c12375.md"
 
 
@@ -71,6 +72,7 @@ def main():
         "docs/plans/2026-06-12-outbound-http-timeouts.md",
         "docs/plans/2026-06-12-provider-response-size-limit.md",
         "docs/plans/2026-06-12-ci-least-privilege-contract.md",
+        "docs/plans/2026-06-13-provider-json-object-shape.md",
         "docs/bugs/p2-python-access-token-in-url-query-c765eb4838c12375.md",
     ]
 
@@ -102,6 +104,7 @@ def main():
     outbound_timeout_plan_text = OUTBOUND_TIMEOUT_PLAN.read_text(encoding="utf-8") if OUTBOUND_TIMEOUT_PLAN.exists() else ""
     provider_response_limit_plan_text = PROVIDER_RESPONSE_LIMIT_PLAN.read_text(encoding="utf-8") if PROVIDER_RESPONSE_LIMIT_PLAN.exists() else ""
     ci_security_plan_text = CI_SECURITY_PLAN.read_text(encoding="utf-8") if CI_SECURITY_PLAN.exists() else ""
+    provider_json_object_plan_text = PROVIDER_JSON_OBJECT_PLAN.read_text(encoding="utf-8") if PROVIDER_JSON_OBJECT_PLAN.exists() else ""
     app_yaml = read("app.yaml")
     makefile_text = read("Makefile")
     workflow_text = read(".github/workflows/check.yml")
@@ -212,8 +215,15 @@ jobs:
     require(all("urllib2.urlopen(" not in source for source in provider_sources),
             "provider handlers must not bypass base.open_url with direct urllib2.urlopen calls",
             failures)
-    require(all("read_url(" in source for source in provider_sources),
-            "every provider handler must route payload reads through base.read_url",
+    require("def decode_json_object(payload):" in base_source and "json.loads(payload)" in base_source and "isinstance(payload, dict)" in base_source and "def read_json_object(url_or_request):" in base_source and "decode_json_object(read_url(url_or_request))" in base_source,
+            "base.py must decode provider JSON through one top-level object guard",
+            failures)
+    require("decode_json_object(instagram_request(url))" in instagram_source
+            and all("read_json_object(" in source for source in [glass_source, map_source, picasa_source]),
+            "every provider handler must route JSON decoding through the shared object guard",
+            failures)
+    require(all("json.loads(" not in source for source in provider_sources),
+            "provider handlers must not bypass the shared JSON object decoder",
             failures)
     require(all(".read()" not in source for source in provider_sources),
             "provider handlers must not perform unbounded response reads",
@@ -238,6 +248,9 @@ jobs:
             failures)
     require("base.require_https_url" in integration_guard_tests and "base.open_url" in integration_guard_tests and "base.HTTP_TIMEOUT_SECONDS" in integration_guard_tests and "base.read_url" in integration_guard_tests and "base.MAX_PROVIDER_RESPONSE_BYTES" in integration_guard_tests and "response.closed" in integration_guard_tests and "instagram.instagram_request" in integration_guard_tests and "picasa.picasa_entry_src" in integration_guard_tests,
             "integration characterization tests must exercise private URL, timeout, response-size, Instagram, and Picasa guards",
+            failures)
+    require("test_read_json_object_accepts_object_payload" in integration_guard_tests and "test_read_json_object_rejects_malformed_json" in integration_guard_tests and "test_read_json_object_rejects_non_object_json" in integration_guard_tests and "b'[]'" in integration_guard_tests and "b'null'" in integration_guard_tests,
+            "integration characterization tests must cover accepted objects, malformed JSON, and non-object JSON values",
             failures)
     require('require_https_url(const.glass_api, "glass_api")' in glass_source,
             "glass.py must validate the private Glass endpoint before fetching it",
@@ -394,6 +407,28 @@ jobs:
             failures)
     require("status: completed" in ci_security_plan_text and "persist-credentials: false" in ci_security_plan_text and "duplicate" in ci_security_plan_text,
             "CI least-privilege plan must record the completed credential and duplicate-key mutation contract",
+            failures)
+    provider_json_statuses = re.findall(
+        r"^status: .+$", provider_json_object_plan_text, flags=re.MULTILINE
+    )
+    provider_json_sections = provider_json_object_plan_text.split(
+        "## Verification Completed\n", 1
+    )
+    provider_json_verification = (
+        provider_json_sections[1] if len(provider_json_sections) == 2 else ""
+    )
+    provider_json_required_evidence = (
+        "All four Make gates and all 16 characterization tests passed",
+        "Python 3 and Python 2 compilation passed",
+        "non-object JSON mutation failed",
+        "direct provider `json.loads` mutation failed",
+        "removed non-object test-contract mutation failed",
+        "hosted pull-request and CodeQL snapshot",
+    )
+    require(provider_json_statuses == ["status: completed"]
+            and all(item in provider_json_verification for item in provider_json_required_evidence)
+            and re.search(r"\b(?:pending|todo|tbd|not run)\b", provider_json_verification, re.IGNORECASE) is None,
+            "Provider JSON object-shape plan must record completed status and actual verification",
             failures)
 
     python_paths = sorted(ROOT.glob("*.py")) + sorted((ROOT / "tests").glob("*.py")) + [ROOT / "scripts/check-baseline.py"]

@@ -1,5 +1,10 @@
 # Changes
 
+## 2026-06-13
+
+- Required all provider JSON responses to decode to top-level objects through a
+  shared parser before handlers access provider fields.
+
 ## 2026-06-12
 
 - Limited provider response bodies to 1 MiB, closed responses after bounded

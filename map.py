@@ -18,10 +18,9 @@ ApiHandler:
 from google.appengine.api import memcache
 import main
 import urllib
-import json
 import cache
 import const
-from base import Base, read_url, require_https_url
+from base import Base, read_json_object, require_https_url
 
 
 def get_weather(lat,lng):
@@ -37,8 +36,7 @@ def get_weather(lat,lng):
 		"lat": lat,
 		"lon": lng
 	})
-	result = read_url(weather_url)
-	json_data = json.loads(result)
+	json_data = read_json_object(weather_url)
 	# json output = http://openweathermap.org/API
 	weather = json_data['weather'][0]
 	main = json_data['main']
@@ -59,8 +57,7 @@ def get_address(lat,lng):
 		"key": const.geocode_key,
 		"sensor": "true"
 	})
-	result = read_url(geocode_url)
-	results = json.loads(result).get('results', [])
+	results = read_json_object(geocode_url).get('results', [])
 	if not results:
 		return ""
 	return results[0]['formatted_address']
@@ -72,9 +69,9 @@ def get_latlng():
 	Returns:
 		Dict object e.g. {"lat": "30.27", "lng": "-97.74"}
 	"""
-	result = read_url(require_https_url(const.map_api, "map_api"))
-	lng = json.loads(result)['lng']
-	lat = json.loads(result)['lat']
+	data = read_json_object(require_https_url(const.map_api, "map_api"))
+	lng = data['lng']
+	lat = data['lat']
 	# fuzzify the map - needed for privacy reasons :-)
 	lat = "{0:.2f}".format(float(lat))
 	lng = "{0:.2f}".format(float(lng))
