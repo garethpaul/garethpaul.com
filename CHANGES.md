@@ -2,6 +2,8 @@
 
 ## 2026-06-14
 
+- Required JSON-designated provider responses to declare a standard or vendor
+  application JSON media type before bounded body reads.
 - Rejected automatic provider redirects through one shared opener so validated
   requests and Instagram bearer headers cannot be forwarded to another host.
 

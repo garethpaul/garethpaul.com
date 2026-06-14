@@ -30,6 +30,7 @@ Priority:
 - Refuse automatic provider redirects before validated URLs or bearer headers
   can be forwarded to another destination
 - Keep provider payload reads behind the shared 1 MiB response limit
+- Require standard or vendor application JSON media before provider JSON reads
 - Require provider JSON to decode to top-level objects through one shared parser
 - Render provider image values through HTTPS-only DOM property assignment
   instead of HTML string concatenation

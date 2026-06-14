@@ -18,9 +18,18 @@ class FakeRequest:
     self.headers[name] = value
 
 
+class FakeHeaders:
+  def __init__(self, content_type):
+    self.content_type = content_type
+
+  def gettype(self):
+    return self.content_type.split(";", 1)[0].strip() if self.content_type else None
+
+
 class FakeResponse:
-  def __init__(self, payload=b"{}"):
+  def __init__(self, payload=b"{}", content_type="application/json"):
     self.payload = payload
+    self.content_type = content_type
     self.closed = False
     self.read_sizes = []
 
@@ -32,6 +41,9 @@ class FakeResponse:
 
   def close(self):
     self.closed = True
+
+  def info(self):
+    return FakeHeaders(self.content_type)
 
 
 class FakeHTTPRedirectHandler:
@@ -219,10 +231,42 @@ class PrivateEndpointGuardTest(unittest.TestCase):
 
     self.assertTrue(response.closed)
 
+  def test_json_response_media_types_accept_standard_and_vendor_json(self):
+    for content_type in (
+      "application/json",
+      "application/json; charset=utf-8",
+      "application/vnd.provider+json",
+    ):
+      with self.subTest(content_type=content_type):
+        self.assertTrue(base.is_json_response(FakeResponse(content_type=content_type)))
+
+  def test_read_url_rejects_non_json_media_before_read_and_closes_response(self):
+    for content_type in (None, "", "text/html", "text/json", "application/+json", "application/octet-stream"):
+      with self.subTest(content_type=content_type):
+        response = FakeResponse(b'[{"unexpected": true}]', content_type=content_type)
+        original_open_url = base.open_url
+        self.addCleanup(setattr, base, "open_url", original_open_url)
+        base.open_url = lambda request: response
+
+        with self.assertRaises(ValueError):
+          base.read_url("https://example.com/provider", expected_json=True)
+
+        self.assertEqual([], response.read_sizes)
+        self.assertTrue(response.closed)
+
+  def test_read_url_preserves_generic_non_json_reads(self):
+    response = FakeResponse(b"plain text", content_type="text/plain")
+    original_open_url = base.open_url
+    self.addCleanup(setattr, base, "open_url", original_open_url)
+    base.open_url = lambda request: response
+
+    self.assertEqual(b"plain text", base.read_url("https://example.com/provider"))
+    self.assertTrue(response.closed)
+
   def test_read_json_object_accepts_object_payload(self):
     original_read_url = base.read_url
     self.addCleanup(setattr, base, "read_url", original_read_url)
-    base.read_url = lambda request: b'{"status": "ok"}'
+    base.read_url = lambda request, expected_json=False: b'{"status": "ok"}'
 
     self.assertEqual(
       {"status": "ok"},
@@ -232,7 +276,7 @@ class PrivateEndpointGuardTest(unittest.TestCase):
   def test_read_json_object_rejects_malformed_json(self):
     original_read_url = base.read_url
     self.addCleanup(setattr, base, "read_url", original_read_url)
-    base.read_url = lambda request: b'{"status"'
+    base.read_url = lambda request, expected_json=False: b'{"status"'
 
     with self.assertRaises(ValueError):
       base.read_json_object("https://example.com/provider")
@@ -243,7 +287,7 @@ class PrivateEndpointGuardTest(unittest.TestCase):
 
     for payload in (b'[]', b'"value"', b'1', b'true', b'null'):
       with self.subTest(payload=payload):
-        base.read_url = lambda request, payload=payload: payload
+        base.read_url = lambda request, expected_json=False, payload=payload: payload
         with self.assertRaises(ValueError):
           base.read_json_object("https://example.com/provider")
 
@@ -303,8 +347,8 @@ class InstagramGuardTest(unittest.TestCase):
     original_read_url = instagram.read_url
     self.addCleanup(setattr, instagram, "read_url", original_read_url)
 
-    def fake_read_url(request):
-      captured.append(request)
+    def fake_read_url(request, expected_json=False):
+      captured.append((request, expected_json))
       return b"{}"
 
     instagram.read_url = fake_read_url
@@ -317,9 +361,10 @@ class InstagramGuardTest(unittest.TestCase):
     self.assertEqual(1, len(captured))
     self.assertEqual(
       "https://api.instagram.com/v1/users/123/media/recent?count=2",
-      captured[0].full_url,
+      captured[0][0].full_url,
     )
-    self.assertEqual("Bearer secret-token", captured[0].headers["Authorization"])
+    self.assertEqual("Bearer secret-token", captured[0][0].headers["Authorization"])
+    self.assertTrue(captured[0][1])
 
 
 class PicasaGuardTest(unittest.TestCase):

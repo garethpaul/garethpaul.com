@@ -1,7 +1,7 @@
 ---
 title: Provider JSON Media Type Boundary
 date: 2026-06-14
-status: in_progress
+status: completed
 execution: code
 ---
 
@@ -48,8 +48,26 @@ read/decode path instead of failing closed at the response boundary.
 
 ## Work Completed
 
-- Pending implementation.
+- Added a shared response-media helper that accepts standard and vendor
+  application JSON types across Python 2 and Python 3 response-header APIs.
+- Added an opt-in JSON boundary to the existing bounded reader and required the
+  shared JSON-object and Instagram request paths to use it before body reads.
+- Added focused unread-body and compatibility regressions, a mutation-sensitive
+  checker, baseline integration, and synchronized repository guidance.
 
 ## Verification Completed
 
-- Pending implementation and verification.
+- The focused provider media tests passed for standard/vendor JSON acceptance,
+  missing/text/binary rejection before reads, generic-read compatibility, and
+  both JSON caller opt-ins.
+- The complete dependency-free suite passed all 25 tests.
+- Python 3 and Python 2 production-module compilation passed.
+- All four Make gates and the external-directory Make gate passed.
+- The seven hostile mutations were rejected across validator removal,
+  allowlist widening, read ordering, both caller bypasses, executable coverage,
+  and completed-plan evidence.
+- Exact diff, generated-artifact, executable-mode, workflow/dependency,
+  whitespace, conflict-marker, and changed-line credential audits passed.
+- No credentialed App Engine request or live provider call was performed.
+- The hosted pull-request and security-alert result is recorded against the
+  exact pushed head in the external engineering tracker.

@@ -82,6 +82,9 @@ validated request or its Instagram bearer header can be forwarded elsewhere.
 Provider payloads are read through `base.read_url`, limited to 1 MiB, and
 closed after each bounded read. Oversized payloads fail before JSON decoding or
 map cache writes.
+JSON-designated provider responses require `application/json` or an
+`application/*+json` media type before the bounded body read; rejected media
+is closed unread while generic non-JSON reads keep their existing behavior.
 
 Provider JSON then passes through one shared decoder that rejects malformed or
 non-object top-level values before handlers access expected fields.
@@ -160,6 +163,8 @@ When the required SDK or runtime is unavailable, use static checks and source re
   JSON shape validation.
 - See `docs/plans/2026-06-14-provider-redirect-boundary.md` for the fail-closed
   outbound redirect and bearer-header boundary.
+- See `docs/plans/2026-06-14-provider-json-media-type-boundary.md` for the
+  provider JSON media-type boundary.
 - See `docs/plans/2026-06-12-ci-least-privilege-contract.md` for the exact hosted
   workflow security contract.
 

@@ -43,7 +43,7 @@ def instagram_request(url):
 	api_url = require_instagram_api_url(_without_access_token_query(url))
 	request = urllib2.Request(api_url)
 	request.add_header("Authorization", "Bearer " + const.instagram_access_token)
-	return read_url(request)
+	return read_url(request, expected_json=True)
 
 
 def instagram_json(url):
