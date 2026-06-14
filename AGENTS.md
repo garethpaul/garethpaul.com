@@ -48,6 +48,8 @@
   nested lookup or iteration; preserve the empty image-list fallback.
 - The template-facing Glass URL from `const.py` is also validated as an HTTPS URL with a host and no embedded credentials or fragments before the Stream page renders it into client-side image URLs.
 - All outbound provider calls must use `base.open_url` so the shared 10-second timeout remains enforced; do not add direct handler-level `urllib2.urlopen` calls.
+- The shared provider opener must refuse automatic redirects so private
+  requests and Instagram bearer headers are not forwarded to unvalidated URLs.
 - Keep `.github/workflows/check.yml` aligned with the exact baseline contract: immutable action pins, read-only permissions, no persisted checkout credentials, no deployment steps, and the documented Python matrix.
 
 ## Agent workflow
