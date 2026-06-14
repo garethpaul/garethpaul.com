@@ -51,6 +51,9 @@ Outbound provider requests use a shared 10-second timeout so a stalled service
 cannot retain a legacy App Engine request handler indefinitely. Keep Instagram
 authorization headers and private endpoint validation intact when changing this
 network boundary.
+Provider requests must not follow automatic redirects because Python 2
+`urllib2` can copy the Instagram authorization header to the redirected
+request. Redirect responses must fail closed before another host is contacted.
 Provider payloads are limited to 1 MiB and responses are closed after bounded
 reads so fast oversized services cannot consume unbounded handler memory.
 Provider JSON must decode to a top-level object through the shared parser before

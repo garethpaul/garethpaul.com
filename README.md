@@ -76,6 +76,8 @@ All checked-in outbound provider requests use the shared 10-second
 `base.open_url` deadline. This bounds stalled Instagram, Glass, Picasa,
 map-location, geocoding, and weather requests without adding automatic retries
 or changing the legacy handler error response.
+The same shared opener makes automatic provider redirects fail closed before a
+validated request or its Instagram bearer header can be forwarded elsewhere.
 
 Provider payloads are read through `base.read_url`, limited to 1 MiB, and
 closed after each bounded read. Oversized payloads fail before JSON decoding or
@@ -156,6 +158,8 @@ When the required SDK or runtime is unavailable, use static checks and source re
   provider payload memory boundary.
 - See `docs/plans/2026-06-13-provider-json-object-shape.md` for shared provider
   JSON shape validation.
+- See `docs/plans/2026-06-14-provider-redirect-boundary.md` for the fail-closed
+  outbound redirect and bearer-header boundary.
 - See `docs/plans/2026-06-12-ci-least-privilege-contract.md` for the exact hosted
   workflow security contract.
 

@@ -25,6 +25,7 @@ PROVIDER_JSON_OBJECT_PLAN = ROOT / "docs/plans/2026-06-13-provider-json-object-s
 PICASA_FEED_SHAPE_PLAN = ROOT / "docs/plans/2026-06-13-picasa-feed-container-shape.md"
 INSTAGRAM_CONTAINER_SHAPE_PLAN = ROOT / "docs/plans/2026-06-13-instagram-container-shape.md"
 LOCATION_INDEPENDENT_MAKE_PLAN = ROOT / "docs/plans/2026-06-13-location-independent-make.md"
+PROVIDER_REDIRECT_PLAN = ROOT / "docs/plans/2026-06-14-provider-redirect-boundary.md"
 BUG = ROOT / "docs/bugs/p2-python-access-token-in-url-query-c765eb4838c12375.md"
 
 
@@ -79,6 +80,7 @@ def main():
         "docs/plans/2026-06-13-picasa-feed-container-shape.md",
         "docs/plans/2026-06-13-instagram-container-shape.md",
         "docs/plans/2026-06-13-location-independent-make.md",
+        "docs/plans/2026-06-14-provider-redirect-boundary.md",
         "docs/bugs/p2-python-access-token-in-url-query-c765eb4838c12375.md",
     ]
 
@@ -116,6 +118,7 @@ def main():
     picasa_feed_shape_plan_text = PICASA_FEED_SHAPE_PLAN.read_text(encoding="utf-8") if PICASA_FEED_SHAPE_PLAN.exists() else ""
     instagram_container_shape_plan_text = INSTAGRAM_CONTAINER_SHAPE_PLAN.read_text(encoding="utf-8") if INSTAGRAM_CONTAINER_SHAPE_PLAN.exists() else ""
     location_independent_make_plan_text = LOCATION_INDEPENDENT_MAKE_PLAN.read_text(encoding="utf-8") if LOCATION_INDEPENDENT_MAKE_PLAN.exists() else ""
+    provider_redirect_plan_text = PROVIDER_REDIRECT_PLAN.read_text(encoding="utf-8") if PROVIDER_REDIRECT_PLAN.exists() else ""
     app_yaml = read("app.yaml")
     makefile_text = read("Makefile")
     workflow_text = read(".github/workflows/check.yml")
@@ -220,8 +223,14 @@ jobs:
     require("parsed.username" in base_source and "parsed.password" in base_source and "parsed.fragment" in base_source,
             "base.py must reject private endpoint URL credentials and fragments",
             failures)
-    require("HTTP_TIMEOUT_SECONDS = 10" in base_source and "def open_url(url_or_request):" in base_source and "urllib2.urlopen(url_or_request, timeout=HTTP_TIMEOUT_SECONDS)" in base_source,
-            "base.py must enforce the shared 10-second outbound provider timeout",
+    require("HTTP_TIMEOUT_SECONDS = 10" in base_source
+            and "class RejectRedirectHandler(urllib2.HTTPRedirectHandler):" in base_source
+            and "def redirect_request(self, req, fp, code, msg, headers, newurl):" in base_source
+            and "    return None" in base_source
+            and "PROVIDER_OPENER = urllib2.build_opener(RejectRedirectHandler())" in base_source
+            and "def open_url(url_or_request):" in base_source
+            and "PROVIDER_OPENER.open(url_or_request, timeout=HTTP_TIMEOUT_SECONDS)" in base_source,
+            "base.py must enforce the shared no-redirect opener and 10-second provider timeout",
             failures)
     require("MAX_PROVIDER_RESPONSE_BYTES = 1024 * 1024" in base_source and "def read_url(url_or_request):" in base_source and "response.read(MAX_PROVIDER_RESPONSE_BYTES + 1)" in base_source and "response.close()" in base_source and "len(payload) > MAX_PROVIDER_RESPONSE_BYTES" in base_source,
             "base.py must bound and close provider response bodies before JSON decoding",
@@ -229,6 +238,9 @@ jobs:
     provider_sources = [glass_source, instagram_source, map_source, picasa_source]
     require(all("urllib2.urlopen(" not in source for source in provider_sources),
             "provider handlers must not bypass base.open_url with direct urllib2.urlopen calls",
+            failures)
+    require("urllib2.urlopen(" not in base_source,
+            "base.py must not bypass the no-redirect provider opener",
             failures)
     require("def decode_json_object(payload):" in base_source and "json.loads(payload)" in base_source and "isinstance(payload, dict)" in base_source and "def read_json_object(url_or_request):" in base_source and "decode_json_object(read_url(url_or_request))" in base_source,
             "base.py must decode provider JSON through one top-level object guard",
@@ -272,8 +284,8 @@ jobs:
     require("img_src = picasa_entry_src(i)" in picasa_source and "if img_src:" in picasa_source,
             "picasa.py must skip malformed Picasa entries instead of raising",
             failures)
-    require("base.require_https_url" in integration_guard_tests and "base.open_url" in integration_guard_tests and "base.HTTP_TIMEOUT_SECONDS" in integration_guard_tests and "base.read_url" in integration_guard_tests and "base.MAX_PROVIDER_RESPONSE_BYTES" in integration_guard_tests and "response.closed" in integration_guard_tests and "instagram.instagram_request" in integration_guard_tests and "picasa.picasa_entries" in integration_guard_tests and "picasa.picasa_entry_src" in integration_guard_tests,
-            "integration characterization tests must exercise private URL, timeout, response-size, Instagram, and Picasa guards",
+    require("base.require_https_url" in integration_guard_tests and "base.open_url" in integration_guard_tests and "base.HTTP_TIMEOUT_SECONDS" in integration_guard_tests and "base.PROVIDER_OPENER" in integration_guard_tests and "base.RejectRedirectHandler" in integration_guard_tests and "test_redirect_handler_refuses_redirect_request_creation" in integration_guard_tests and "test_provider_opener_installs_one_redirect_rejection_handler" in integration_guard_tests and "base.read_url" in integration_guard_tests and "base.MAX_PROVIDER_RESPONSE_BYTES" in integration_guard_tests and "response.closed" in integration_guard_tests and "instagram.instagram_request" in integration_guard_tests and "picasa.picasa_entries" in integration_guard_tests and "picasa.picasa_entry_src" in integration_guard_tests,
+            "integration characterization tests must exercise private URL, redirect, timeout, response-size, Instagram, and Picasa guards",
             failures)
     require("test_picasa_entries_returns_expected_entry_list" in integration_guard_tests
             and "test_picasa_entries_ignores_malformed_feed_containers" in integration_guard_tests,
@@ -561,6 +573,39 @@ jobs:
     require("absolute Makefile path" in readme_text
             and "Made legacy API verification independent" in changes_text,
             "README and CHANGES must document location-independent Make verification",
+            failures)
+    provider_redirect_statuses = re.findall(
+        r"^status: .+$", provider_redirect_plan_text, flags=re.MULTILINE
+    )
+    provider_redirect_sections = provider_redirect_plan_text.split(
+        "## Verification Completed\n", 1
+    )
+    provider_redirect_verification = (
+        provider_redirect_sections[1] if len(provider_redirect_sections) == 2 else ""
+    )
+    provider_redirect_required_evidence = (
+        "focused and complete characterization tests passed",
+        "Python 2 production-module compilation passed",
+        "All four Make gates passed",
+        "direct urlopen mutation failed",
+        "redirect-allow mutation failed",
+        "per-request opener mutation failed",
+        "timeout propagation mutation failed",
+        "focused test mutation failed",
+        "plan evidence mutation failed",
+        "hosted pull-request and code-scanning snapshot",
+    )
+    require(provider_redirect_statuses == ["status: completed"]
+            and all(item in provider_redirect_verification for item in provider_redirect_required_evidence)
+            and re.search(r"\b(?:pending|todo|tbd|not run|not yet)\b", provider_redirect_verification, re.IGNORECASE) is None,
+            "Provider redirect plan must record completed status and actual verification",
+            failures)
+    require("automatic provider redirects fail closed" in readme_text
+            and "must not follow automatic redirects" in security_text
+            and "Refuse automatic provider redirects" in vision_text
+            and "Rejected automatic provider redirects" in changes_text
+            and "must refuse automatic redirects" in agents_text,
+            "Project guidance must document the provider redirect boundary",
             failures)
 
     python_paths = sorted(ROOT.glob("*.py")) + sorted((ROOT / "tests").glob("*.py")) + [ROOT / "scripts/check-baseline.py"]

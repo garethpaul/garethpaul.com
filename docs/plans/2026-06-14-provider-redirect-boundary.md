@@ -1,7 +1,7 @@
 ---
 title: Provider Redirect Boundary
 date: 2026-06-14
-status: planned
+status: completed
 execution: code
 ---
 
@@ -82,8 +82,29 @@ Files: `README.md`, `SECURITY.md`, `VISION.md`, `CHANGES.md`, `AGENTS.md`
 
 ## Work Completed
 
-- Not yet implemented.
+- Added one module-level `urllib2` opener with a redirect handler that refuses
+  redirect request creation before Python 2 can copy request headers.
+- Routed every existing provider call through that opener while preserving the
+  shared ten-second timeout and bounded response reader.
+- Extended the Python 3 compatibility stubs, characterization suite, canonical
+  checker, and repository guidance for the fail-closed redirect boundary.
 
 ## Verification Completed
 
-- Not yet run.
+- The focused and complete characterization tests passed with 22 tests.
+- A native Python 2 two-server integration check received the redirect response,
+  raised `HTTPError`, and confirmed the redirected sink received no request or
+  authorization header.
+- Python 2 production-module compilation passed for every checked-in legacy
+  application module; Python 3 checker and test compilation also passed.
+- All four Make gates passed in a pristine completed-evidence copy, and the
+  absolute-Makefile check passed from `/tmp`.
+- The direct urlopen mutation failed.
+- The redirect-allow mutation failed.
+- The per-request opener mutation failed.
+- The timeout propagation mutation failed.
+- The focused test mutation failed.
+- The plan evidence mutation failed.
+- No credentialed live-provider or App Engine request was performed.
+- The hosted pull-request and code-scanning snapshot is recorded against the
+  exact pushed head in the external engineering tracker.
