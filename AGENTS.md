@@ -50,6 +50,9 @@
 - All outbound provider calls must use `base.open_url` so the shared 10-second timeout remains enforced; do not add direct handler-level `urllib2.urlopen` calls.
 - The shared provider opener must refuse automatic redirects so private
   requests and Instagram bearer headers are not forwarded to unvalidated URLs.
+- JSON-designated provider reads must require `application/json` or an
+  `application/*+json` media type before reading and close rejected responses
+  without consuming their bodies.
 - Keep `.github/workflows/check.yml` aligned with the exact baseline contract: immutable action pins, read-only permissions, no persisted checkout credentials, no deployment steps, and the documented Python matrix.
 
 ## Agent workflow

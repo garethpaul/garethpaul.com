@@ -47,10 +47,27 @@ def open_url(url_or_request):
   return PROVIDER_OPENER.open(url_or_request, timeout=HTTP_TIMEOUT_SECONDS)
 
 
-def read_url(url_or_request):
+def is_json_response(response):
+  """Return whether a provider response declares an accepted JSON media type."""
+  headers = response.info()
+  if hasattr(headers, "get_content_type"):
+    media_type = headers.get_content_type()
+  elif hasattr(headers, "gettype"):
+    media_type = headers.gettype()
+  else:
+    media_type = headers.get("Content-Type", "").split(";", 1)[0].strip()
+  media_type = (media_type or "").lower()
+  return (media_type == "application/json" or
+          (media_type.startswith("application/") and media_type.endswith("+json") and
+           len(media_type) > len("application/+json")))
+
+
+def read_url(url_or_request, expected_json=False):
   """Read and close a provider response within the shared payload limit."""
   response = open_url(url_or_request)
   try:
+    if expected_json and not is_json_response(response):
+      raise ValueError("Provider response media type is not JSON")
     payload = response.read(MAX_PROVIDER_RESPONSE_BYTES + 1)
   finally:
     response.close()
@@ -69,7 +86,7 @@ def decode_json_object(payload):
 
 def read_json_object(url_or_request):
   """Read bounded provider JSON and require a top-level object."""
-  return decode_json_object(read_url(url_or_request))
+  return decode_json_object(read_url(url_or_request, expected_json=True))
 
 
 class Base(webapp2.RequestHandler):
