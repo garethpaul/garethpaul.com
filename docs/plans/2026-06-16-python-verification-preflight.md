@@ -1,6 +1,6 @@
 # Python Verification Preflight
 
-## Status: In Progress
+## Status: Completed
 
 ## Context
 
@@ -65,3 +65,32 @@ fully verifiable without private providers or App Engine.
 No App Engine deployment, private `const.py`, provider credentials, live
 provider request, browser route, or production integration is executed or
 claimed. The `runtime: python27` deployment declaration remains unchanged.
+
+## Work Completed
+
+- Added a POSIX-shell Python 3 preflight with a `python3` default, a supported
+  `PYTHON` override, and actionable missing-command and major-version errors.
+- Routed the baseline checker and both unittest discovery invocations through
+  the selected interpreter while preserving location-independent Make gates.
+- Added checker contracts for helper behavior, Make propagation, checker/test
+  ownership, synchronized guidance, and completed evidence.
+- Documented the distinction between Python 3 offline verification and the
+  unchanged Python 2 App Engine deployment runtime.
+
+## Verification Completed
+
+- POSIX shell syntax and in-memory Python compilation passed.
+- All four Make aliases passed from the repository root with Python 3.12.8;
+  the complete 25-test characterization suite passed on each applicable gate.
+- `make check` passed from the repository root and external working directory.
+- The explicit compatible Python command override passed using the resolved
+  Python 3 executable path.
+- The missing-command and non-Python-3 preflights failed early with their
+  intended actionable diagnostics.
+- Nine isolated hostile mutations were rejected for the Make default, helper
+  propagation, checker ownership, test ownership, command lookup, major-version
+  comparison, diagnostic, guidance, and plan-status contracts.
+- Exact diff, generated-cache, credential-like value, dependency/workflow
+  drift, conflict-marker, file-mode, and whitespace audits passed.
+- No App Engine, private configuration, provider credential, live provider,
+  browser, or production integration was executed or claimed.

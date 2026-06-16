@@ -25,6 +25,8 @@ Priority:
   for access-token query strings, Instagram pagination host checks, HTTPS API
   URLs, Picasa entry parsing, and cache-key guardrails
 - Keep hosted characterization coverage green on Python 3.10, 3.12, and 3.14
+- Offline verification uses one explicit, fail-fast Python 3 command while the
+  deployment remains Python 2.
 - Keep hosted checks pinned, read-only, credential-free, and non-deploying
 - Keep every outbound provider request behind the shared 10-second deadline
 - Refuse automatic provider redirects before validated URLs or bearer headers

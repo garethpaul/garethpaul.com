@@ -29,6 +29,7 @@ LOCATION_INDEPENDENT_MAKE_PLAN = ROOT / "docs/plans/2026-06-13-location-independ
 PROVIDER_REDIRECT_PLAN = ROOT / "docs/plans/2026-06-14-provider-redirect-boundary.md"
 PROVIDER_JSON_MEDIA_PLAN = ROOT / "docs/plans/2026-06-14-provider-json-media-type-boundary.md"
 PROVIDER_JSON_MEDIA_CHECK = ROOT / "scripts/check-provider-json-media.py"
+PYTHON_PREFLIGHT_PLAN = ROOT / "docs/plans/2026-06-16-python-verification-preflight.md"
 BUG = ROOT / "docs/bugs/p2-python-access-token-in-url-query-c765eb4838c12375.md"
 
 
@@ -65,6 +66,7 @@ def main():
         "tests/test_integration_guards.py",
         "tests/test_template_image_rendering.py",
         "scripts/check-provider-json-media.py",
+        "scripts/check-python3.sh",
         "docs/plans/2026-06-08-legacy-api-baseline.md",
         "docs/plans/2026-06-09-private-endpoint-https.md",
         "docs/plans/2026-06-09-private-endpoint-host-validation.md",
@@ -86,6 +88,7 @@ def main():
         "docs/plans/2026-06-13-location-independent-make.md",
         "docs/plans/2026-06-14-provider-redirect-boundary.md",
         "docs/plans/2026-06-14-provider-json-media-type-boundary.md",
+        "docs/plans/2026-06-16-python-verification-preflight.md",
         "docs/bugs/p2-python-access-token-in-url-query-c765eb4838c12375.md",
     ]
 
@@ -124,6 +127,8 @@ def main():
     instagram_container_shape_plan_text = INSTAGRAM_CONTAINER_SHAPE_PLAN.read_text(encoding="utf-8") if INSTAGRAM_CONTAINER_SHAPE_PLAN.exists() else ""
     location_independent_make_plan_text = LOCATION_INDEPENDENT_MAKE_PLAN.read_text(encoding="utf-8") if LOCATION_INDEPENDENT_MAKE_PLAN.exists() else ""
     provider_redirect_plan_text = PROVIDER_REDIRECT_PLAN.read_text(encoding="utf-8") if PROVIDER_REDIRECT_PLAN.exists() else ""
+    python_preflight_plan_text = PYTHON_PREFLIGHT_PLAN.read_text(encoding="utf-8") if PYTHON_PREFLIGHT_PLAN.exists() else ""
+    python_preflight_text = read("scripts/check-python3.sh")
     app_yaml = read("app.yaml")
     makefile_text = read("Makefile")
     workflow_text = read(".github/workflows/check.yml")
@@ -138,10 +143,43 @@ def main():
     require(".PHONY: build check lint test" in makefile_text
             and "lint build: check" in makefile_text
             and 'ROOT := $(abspath $(dir $(lastword $(MAKEFILE_LIST))))' in makefile_text
-            and 'cd "$(ROOT)" && ./scripts/check-baseline.py' in makefile_text
-            and makefile_text.count('cd "$(ROOT)" && python3 -m unittest discover -s tests') == 2,
+            and "PYTHON ?= python3" in makefile_text
+            and makefile_text.count('PYTHON="$(PYTHON)" "$(ROOT)/scripts/check-python3.sh"') == 2
+            and 'cd "$(ROOT)" && "$(PYTHON)" scripts/check-baseline.py' in makefile_text
+            and makefile_text.count('cd "$(ROOT)" && "$(PYTHON)" -m unittest discover -s tests') == 2,
             "Makefile must expose lint, test, build, and check gate targets with characterization tests",
             failures)
+    require(
+        'PYTHON=${PYTHON:-python3}' in python_preflight_text
+        and 'command -v "$PYTHON"' in python_preflight_text
+        and 'sys.stdout.write(str(sys.version_info[0]))' in python_preflight_text
+        and 'if [ "$python_major" != "3" ]; then' in python_preflight_text
+        and "Python 3 command not found:" in python_preflight_text
+        and "Verification requires Python 3:" in python_preflight_text,
+        "Python verification must fail fast through the shared Python 3 preflight",
+        failures,
+    )
+    python_preflight_guidance = (
+        "Offline verification uses one explicit, fail-fast Python 3 command while the "
+        "deployment remains Python 2."
+    )
+    require(
+        all(
+            python_preflight_guidance in re.sub(r"\s+", " ", text)
+            for text in (readme_text, agents_text, vision_text, changes_text)
+        ),
+        "Project guidance must distinguish the Python 3 verification command from the Python 2 deployment runtime",
+        failures,
+    )
+    require(
+        "## Status: Completed" in python_preflight_plan_text
+        and "repository root and external working directory" in python_preflight_plan_text
+        and "explicit compatible Python command override" in python_preflight_plan_text
+        and "missing-command and non-Python-3 preflights" in python_preflight_plan_text
+        and "hostile mutations were rejected" in python_preflight_plan_text,
+        "Python verification preflight plan must record completed status and actual verification",
+        failures,
+    )
     expected_workflow_text = """name: Check
 
 on:

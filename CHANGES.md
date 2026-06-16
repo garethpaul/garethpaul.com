@@ -1,5 +1,10 @@
 # Changes
 
+## 2026-06-16
+
+- Offline verification uses one explicit, fail-fast Python 3 command while the
+  deployment remains Python 2.
+
 ## 2026-06-14
 
 - Required JSON-designated provider responses to declare a standard or vendor
