@@ -45,6 +45,8 @@
 - Instagram pagination URLs must remain on `https://api.instagram.com` before the proxy sends the bearer token header.
 - Normalize malformed Instagram pagination and media containers before
   following or combining provider pages.
+- Non-text Instagram pagination URL values must normalize to no next page
+  before the proxy attempts URL parsing.
 - Map API responses cache by request path/query and weather/geocode URLs are built with structured HTTPS query encoding.
 - Private endpoints loaded from local `const.py`, including map location, Picasa, and Glass URLs, are validated as HTTPS URLs with hosts and no embedded credentials or fragments before the app fetches them.
 - Normalize malformed Picasa feed objects and non-list entry containers before

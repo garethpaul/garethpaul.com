@@ -2,6 +2,8 @@
 
 ## 2026-06-16
 
+- Ignored non-text Instagram pagination URL values while preserving valid media
+  from the current provider response.
 - Offline verification uses one explicit, fail-fast Python 3 command while the
   deployment remains Python 2.
 

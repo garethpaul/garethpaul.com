@@ -30,6 +30,7 @@ PROVIDER_REDIRECT_PLAN = ROOT / "docs/plans/2026-06-14-provider-redirect-boundar
 PROVIDER_JSON_MEDIA_PLAN = ROOT / "docs/plans/2026-06-14-provider-json-media-type-boundary.md"
 PROVIDER_JSON_MEDIA_CHECK = ROOT / "scripts/check-provider-json-media.py"
 PYTHON_PREFLIGHT_PLAN = ROOT / "docs/plans/2026-06-16-python-verification-preflight.md"
+INSTAGRAM_PAGINATION_URL_PLAN = ROOT / "docs/plans/2026-06-16-instagram-pagination-url-shape.md"
 BUG = ROOT / "docs/bugs/p2-python-access-token-in-url-query-c765eb4838c12375.md"
 
 
@@ -89,6 +90,7 @@ def main():
         "docs/plans/2026-06-14-provider-redirect-boundary.md",
         "docs/plans/2026-06-14-provider-json-media-type-boundary.md",
         "docs/plans/2026-06-16-python-verification-preflight.md",
+        "docs/plans/2026-06-16-instagram-pagination-url-shape.md",
         "docs/bugs/p2-python-access-token-in-url-query-c765eb4838c12375.md",
     ]
 
@@ -128,6 +130,7 @@ def main():
     location_independent_make_plan_text = LOCATION_INDEPENDENT_MAKE_PLAN.read_text(encoding="utf-8") if LOCATION_INDEPENDENT_MAKE_PLAN.exists() else ""
     provider_redirect_plan_text = PROVIDER_REDIRECT_PLAN.read_text(encoding="utf-8") if PROVIDER_REDIRECT_PLAN.exists() else ""
     python_preflight_plan_text = PYTHON_PREFLIGHT_PLAN.read_text(encoding="utf-8") if PYTHON_PREFLIGHT_PLAN.exists() else ""
+    instagram_pagination_url_plan_text = INSTAGRAM_PAGINATION_URL_PLAN.read_text(encoding="utf-8") if INSTAGRAM_PAGINATION_URL_PLAN.exists() else ""
     python_preflight_text = read("scripts/check-python3.sh")
     app_yaml = read("app.yaml")
     makefile_text = read("Makefile")
@@ -306,6 +309,15 @@ jobs:
             and "_, second_page = instagram_page(data_2)" in instagram_source,
             "instagram.py must normalize both pages before pagination and media concatenation",
             failures)
+    require("STRING_TYPES = (basestring,)" in instagram_source
+            and "except NameError:" in instagram_source
+            and "STRING_TYPES = (str,)" in instagram_source
+            and "next_url = pagination.get('next_url')" in instagram_source
+            and "if not isinstance(next_url, STRING_TYPES):" in instagram_source
+            and "next_url = None" in instagram_source
+            and "return next_url, media" in instagram_source,
+            "instagram.py must ignore non-text pagination URL values on both runtimes",
+            failures)
     require('require_https_url(const.glass_url, "glass_url")' in base_source,
             "base.py must validate the template-facing Glass URL before rendering it",
             failures)
@@ -338,6 +350,10 @@ jobs:
             and "test_instagram_page_ignores_malformed_containers" in integration_guard_tests
             and "instagram.instagram_page" in integration_guard_tests,
             "integration characterization tests must cover valid and malformed Instagram containers",
+            failures)
+    require("test_instagram_page_ignores_non_text_pagination_urls" in integration_guard_tests
+            and "malformed_next_urls = [[], {}, 1, True]" in integration_guard_tests,
+            "integration characterization tests must cover non-text Instagram pagination URLs",
             failures)
     require("test_read_json_object_accepts_object_payload" in integration_guard_tests and "test_read_json_object_rejects_malformed_json" in integration_guard_tests and "test_read_json_object_rejects_non_object_json" in integration_guard_tests and "b'[]'" in integration_guard_tests and "b'null'" in integration_guard_tests,
             "integration characterization tests must cover accepted objects, malformed JSON, and non-object JSON values",
@@ -442,6 +458,13 @@ jobs:
             and "Normalize malformed Instagram pagination and media containers" in agents_text
             and "Normalized malformed Instagram pagination and media containers" in changes_text,
             "Project guidance must document the Instagram container-shape guard",
+            failures)
+    require("Non-text Instagram pagination URL values" in readme_text
+            and "Non-text Instagram pagination URL values" in security_text
+            and "Non-text Instagram pagination URL values" in vision_text
+            and "Non-text Instagram pagination URL values" in agents_text
+            and "Ignored non-text Instagram pagination URL values" in changes_text,
+            "Project guidance must document the Instagram pagination URL-shape guard",
             failures)
     require("shared 10-second deadline" in vision_text and "urllib2.urlopen" in vision_text,
             "VISION must describe the outbound provider timeout boundary",
@@ -585,6 +608,32 @@ jobs:
             and all(item in instagram_container_verification for item in instagram_container_required_evidence)
             and re.search(r"\b(?:pending|todo|tbd|not run)\b", instagram_container_verification, re.IGNORECASE) is None,
             "Instagram container-shape plan must record completed status and actual verification",
+            failures)
+    instagram_pagination_url_statuses = re.findall(
+        r"^status: .+$", instagram_pagination_url_plan_text, flags=re.MULTILINE
+    )
+    instagram_pagination_url_sections = instagram_pagination_url_plan_text.split(
+        "## Verification Completed\n", 1
+    )
+    instagram_pagination_url_verification = (
+        instagram_pagination_url_sections[1]
+        if len(instagram_pagination_url_sections) == 2
+        else ""
+    )
+    instagram_pagination_url_required_evidence = (
+        "focused and complete characterization tests passed",
+        "All four Make gates passed",
+        "external-directory Make gate passed",
+        "text-type guard mutation failed",
+        "arbitrary-truthy-value mutation failed",
+        "focused-test contract mutation failed",
+        "plan-status mutation failed",
+        "plan-evidence mutation failed",
+    )
+    require(instagram_pagination_url_statuses == ["status: completed"]
+            and all(item in instagram_pagination_url_verification for item in instagram_pagination_url_required_evidence)
+            and re.search(r"\b(?:pending|todo|tbd|not run|not yet)\b", instagram_pagination_url_verification, re.IGNORECASE) is None,
+            "Instagram pagination URL-shape plan must record completed status and actual verification",
             failures)
     location_independent_make_statuses = re.findall(
         r"^status: .+$", location_independent_make_plan_text, flags=re.MULTILINE

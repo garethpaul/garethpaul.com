@@ -1,7 +1,7 @@
 ---
 title: Instagram Pagination URL Shape
 date: 2026-06-16
-status: active
+status: completed
 execution: code
 ---
 
@@ -54,8 +54,31 @@ credentials.
 
 ## Work Completed
 
-Pending implementation.
+- Added a Python 2/3-compatible text-type tuple and normalized non-text
+  `pagination.next_url` values to `None` while preserving valid current-page
+  media.
+- Added focused characterization and static contracts for truthy malformed
+  pagination URL values, guidance, and completed verification evidence.
 
 ## Verification Completed
 
-Pending implementation and validation.
+- The focused and complete characterization tests passed: the integration file
+  ran 24 tests and the complete suite ran 26 tests on Python 3.
+- Python 3 compilation passed for the changed checker, source, and test, and
+  Python 2.7 compilation passed for the production `instagram.py` module.
+- All four Make gates passed in the isolated baseline mirror and again in the
+  final worktree.
+- The external-directory Make gate passed through the absolute Makefile path.
+- The text-type guard mutation failed after restoring the unvalidated direct
+  pagination return.
+- The arbitrary-truthy-value mutation failed after replacing the type check
+  with a truthiness check.
+- The focused-test contract mutation failed after renaming the malformed URL
+  characterization.
+- The Python 2 text compatibility mutation failed after reducing the accepted
+  type tuple to Python 3 `str` only.
+- The plan-status mutation failed after restoring an active status.
+- The plan-evidence mutation failed after removing the text-guard mutation
+  result.
+- Diff, generated-artifact, credential, conflict-marker, file-mode, and exact
+  upstream audits completed before commit.

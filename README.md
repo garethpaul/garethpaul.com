@@ -119,6 +119,8 @@ When the required SDK or runtime is unavailable, use static checks and source re
   the proxy sends the bearer token header.
 - Malformed Instagram pagination objects or non-list media containers normalize
   to no next page and an empty media list before either page is combined.
+- Non-text Instagram pagination URL values normalize to no next page while
+  preserving valid media from the current response.
 - Map API responses cache by request path/query and weather/geocode URLs are built with structured HTTPS query encoding.
 - Private endpoints loaded from local `const.py`, including map location,
   Picasa, and Glass URLs, are validated as HTTPS URLs with hosts and no
@@ -172,6 +174,8 @@ When the required SDK or runtime is unavailable, use static checks and source re
   outbound redirect and bearer-header boundary.
 - See `docs/plans/2026-06-14-provider-json-media-type-boundary.md` for the
   provider JSON media-type boundary.
+- See `docs/plans/2026-06-16-instagram-pagination-url-shape.md` for the optional
+  Instagram pagination URL text boundary.
 - See `docs/plans/2026-06-12-ci-least-privilege-contract.md` for the exact hosted
   workflow security contract.
 

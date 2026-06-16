@@ -71,6 +71,8 @@ strings, require Instagram pagination host values to stay on
 HTTPS, and verify the map API writes cache entries with a defined request key.
 Malformed Instagram pagination objects and non-list media containers should
 normalize safely before either provider page is combined.
+Non-text Instagram pagination URL values should normalize to no next page while
+preserving valid media from the current provider response.
 The public webapp2 app keeps debug output disabled. Private integration endpoints
 loaded from local `const.py` must also be HTTPS URLs with hosts and no embedded credentials or fragments before proxy handlers fetch them.
 The template-facing Glass URL from `const.py` must also be validated before stream templates render it into client-side image URLs.
