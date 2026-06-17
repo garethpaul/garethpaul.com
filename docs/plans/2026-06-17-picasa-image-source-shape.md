@@ -1,7 +1,7 @@
 ---
 title: Picasa Image Source Shape
 type: reliability
-status: planned
+status: completed
 date: 2026-06-17
 execution: code
 ---
@@ -47,3 +47,23 @@ though downstream rendering expects URL text.
   non-text JSON values; valid text behavior remains unchanged.
 - Live retired Picasa responses and App Engine deployment remain outside local
   verification.
+
+## Work Completed
+
+- Added a Python 2/3 text compatibility tuple and normalized non-text
+  `content.src` values to no image before handler output.
+- Added truthy object, array, boolean, and numeric regressions plus a valid
+  Unicode source control.
+- Added source, test, guidance, and completed-plan contracts to the maintained
+  baseline.
+
+## Verification Completed
+
+- Focused provider characterization and the full 28 tests passed.
+- Python 2.7 `picasa.py` compilation passed.
+- The repository-root and external-directory `make check` gates passed.
+- Five isolated hostile mutations were rejected across compatibility, type
+  guard, malformed-source coverage, Unicode coverage, and plan evidence.
+- Python syntax, diff, generated-artifact, and changed-line credential audits
+  passed.
+- No live Picasa request was executed and no credentials were used.

@@ -134,6 +134,8 @@ When the required SDK or runtime is unavailable, use static checks and source re
   while proxying legacy album data.
 - Malformed Picasa album entries are skipped so one partial provider record does
   not break the whole image proxy response.
+- Picasa image sources accept only text values; non-text provider fields are
+  skipped while valid Unicode URLs are preserved.
 - Malformed Picasa `feed` objects or non-list `feed.entry` values normalize to
   the same empty image-list response instead of being dereferenced or iterated.
 - Provider integrations require top-level JSON objects; arrays, scalars, and

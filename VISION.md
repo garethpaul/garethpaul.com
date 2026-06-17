@@ -80,6 +80,8 @@ Empty Picasa feed responses should continue to return an empty image list
 instead of raising while the legacy album integration remains available.
 Malformed Picasa album entries should be skipped so partial provider records do
 not break otherwise valid image proxy responses.
+Picasa image source fields should normalize non-text values to no image while
+preserving valid Unicode URL text.
 Malformed Picasa feed objects and non-list entry containers should normalize to
 the same empty image-list response before nested lookup or iteration.
 External template assets should continue to use explicit HTTPS URLs for shared

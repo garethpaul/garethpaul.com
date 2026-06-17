@@ -1,5 +1,10 @@
 # Changes
 
+## 2026-06-17
+
+- Normalized non-text Picasa image source values to no image while preserving
+  valid Unicode URL strings.
+
 ## 2026-06-16
 
 - Ignored non-text Instagram pagination URL values while preserving valid media
