@@ -2,6 +2,7 @@
 title: "fix: Validate Picasa image URLs"
 type: fix
 date: 2026-06-17
+status: completed
 ---
 
 # fix: Validate Picasa image URLs
@@ -88,3 +89,19 @@ non-HTTPS sources. The server contract should fail closed for every client.
   from the API response, which is the intended fail-closed behavior.
 - The shared policy permits explicit ports and query strings; changing those
   semantics would affect private endpoint configuration and is outside scope.
+
+## Verification Completed
+
+- The 8 focused Picasa tests and all 30 characterization tests passed, so the
+  focused and all characterization tests passed without provider credentials.
+- All four Make gates passed: `make lint`, `make test`, `make build`, and
+  `make check` exercised the maintained baseline from the repository root.
+- The repository-root and external-directory `make check` passed, preserving
+  the location-independent verification contract.
+- Python 2.7 `picasa.py` compilation passed alongside Python 3 compilation of
+  the changed runtime, test, and checker modules.
+- Five isolated hostile mutations were rejected: removing or bypassing the
+  shared validator, moving URL validation before the text guard, deleting the
+  hostile-URL regression contract, and weakening this evidence record.
+- No live Picasa request was executed; validation used dependency-free fixtures
+  and static contracts only.

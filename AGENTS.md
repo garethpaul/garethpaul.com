@@ -53,6 +53,8 @@
   nested lookup or iteration; preserve the empty image-list fallback.
 - Non-text Picasa image source values must normalize to no image before handler
   output; preserve valid Python 2/3 text values, including Unicode URLs.
+- Picasa image source URLs must pass `base.require_https_url` before handler
+  output; keep this server policy separate from the browser's HTTPS filter.
 - The template-facing Glass URL from `const.py` is also validated as an HTTPS URL with a host and no embedded credentials or fragments before the Stream page renders it into client-side image URLs.
 - All outbound provider calls must use `base.open_url` so the shared 10-second timeout remains enforced; do not add direct handler-level `urllib2.urlopen` calls.
 - The shared provider opener must refuse automatic redirects so private

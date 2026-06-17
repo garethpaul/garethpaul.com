@@ -32,6 +32,7 @@ PROVIDER_JSON_MEDIA_CHECK = ROOT / "scripts/check-provider-json-media.py"
 PYTHON_PREFLIGHT_PLAN = ROOT / "docs/plans/2026-06-16-python-verification-preflight.md"
 INSTAGRAM_PAGINATION_URL_PLAN = ROOT / "docs/plans/2026-06-16-instagram-pagination-url-shape.md"
 PICASA_SOURCE_SHAPE_PLAN = ROOT / "docs/plans/2026-06-17-picasa-image-source-shape.md"
+PICASA_URL_BOUNDARY_PLAN = ROOT / "docs/plans/2026-06-17-002-fix-picasa-image-url-boundary-plan.md"
 BUG = ROOT / "docs/bugs/p2-python-access-token-in-url-query-c765eb4838c12375.md"
 
 
@@ -93,6 +94,7 @@ def main():
         "docs/plans/2026-06-16-python-verification-preflight.md",
         "docs/plans/2026-06-16-instagram-pagination-url-shape.md",
         "docs/plans/2026-06-17-picasa-image-source-shape.md",
+        "docs/plans/2026-06-17-002-fix-picasa-image-url-boundary-plan.md",
         "docs/bugs/p2-python-access-token-in-url-query-c765eb4838c12375.md",
     ]
 
@@ -134,6 +136,7 @@ def main():
     python_preflight_plan_text = PYTHON_PREFLIGHT_PLAN.read_text(encoding="utf-8") if PYTHON_PREFLIGHT_PLAN.exists() else ""
     instagram_pagination_url_plan_text = INSTAGRAM_PAGINATION_URL_PLAN.read_text(encoding="utf-8") if INSTAGRAM_PAGINATION_URL_PLAN.exists() else ""
     picasa_source_shape_plan_text = PICASA_SOURCE_SHAPE_PLAN.read_text(encoding="utf-8") if PICASA_SOURCE_SHAPE_PLAN.exists() else ""
+    picasa_url_boundary_plan_text = PICASA_URL_BOUNDARY_PLAN.read_text(encoding="utf-8") if PICASA_URL_BOUNDARY_PLAN.exists() else ""
     python_preflight_text = read("scripts/check-python3.sh")
     app_yaml = read("app.yaml")
     makefile_text = read("Makefile")
@@ -344,6 +347,21 @@ jobs:
             and "if not isinstance(source, STRING_TYPES):" in picasa_source,
             "picasa.py must accept only Python 2/3 text image sources",
             failures)
+    picasa_text_guard = "if not isinstance(source, STRING_TYPES):"
+    picasa_url_guard = 'return require_https_url(source, "Picasa image source")'
+    picasa_url_sequence = '''source = content.get('src')
+  if not isinstance(source, STRING_TYPES):
+    return None
+  try:
+    return require_https_url(source, "Picasa image source")
+  except ValueError:
+    return None'''
+    require(picasa_url_guard in picasa_source
+            and "except ValueError:" in picasa_source
+            and picasa_source.index(picasa_text_guard) < picasa_source.index(picasa_url_guard)
+            and picasa_url_sequence in picasa_source,
+            "picasa.py must validate text image sources through the shared HTTPS policy and fail closed",
+            failures)
     require("img_src = picasa_entry_src(i)" in picasa_source and "if img_src:" in picasa_source,
             "picasa.py must skip malformed Picasa entries instead of raising",
             failures)
@@ -351,6 +369,15 @@ jobs:
             and "test_picasa_entry_src_preserves_unicode_source" in integration_guard_tests
             and '"url": "https://example.com/image.jpg"' in integration_guard_tests,
             "Picasa source-shape regressions must cover truthy non-text and Unicode values",
+            failures)
+    require("test_picasa_entry_src_ignores_unsafe_text_urls" in integration_guard_tests
+            and "test_picasa_entry_src_keeps_valid_sibling_after_unsafe_source" in integration_guard_tests
+            and 'u"https://example.com:8443/照片.jpg?size=large"' in integration_guard_tests
+            and '"http://example.com/image.jpg"' in integration_guard_tests
+            and '"data:image/svg+xml,<svg></svg>"' in integration_guard_tests
+            and '"https://user:password@example.com/image.jpg"' in integration_guard_tests
+            and '"https://example.com/image.jpg#fragment"' in integration_guard_tests,
+            "Picasa URL regressions must reject unsafe text while preserving valid Unicode HTTPS sources",
             failures)
     require("base.require_https_url" in integration_guard_tests and "base.open_url" in integration_guard_tests and "base.HTTP_TIMEOUT_SECONDS" in integration_guard_tests and "base.PROVIDER_OPENER" in integration_guard_tests and "base.RejectRedirectHandler" in integration_guard_tests and "test_redirect_handler_refuses_redirect_request_creation" in integration_guard_tests and "test_provider_opener_installs_one_redirect_rejection_handler" in integration_guard_tests and "base.read_url" in integration_guard_tests and "base.MAX_PROVIDER_RESPONSE_BYTES" in integration_guard_tests and "response.closed" in integration_guard_tests and "instagram.instagram_request" in integration_guard_tests and "picasa.picasa_entries" in integration_guard_tests and "picasa.picasa_entry_src" in integration_guard_tests,
             "integration characterization tests must exercise private URL, redirect, timeout, response-size, Instagram, and Picasa guards",
@@ -456,6 +483,14 @@ jobs:
             and "Normalized non-text Picasa image source values" in changes_text
             and "Non-text Picasa image source values must normalize to no image" in agents_text,
             "Project guidance must document the Picasa image source shape guard",
+            failures)
+    require("Picasa API publishes only HTTPS image URLs" in readme_text
+            and "server-side API boundary" in readme_text
+            and "Picasa image source URLs must use HTTPS" in security_text
+            and "server-side Picasa URL policy" in vision_text
+            and "Picasa image source URLs must pass `base.require_https_url`" in agents_text
+            and "Filtered Picasa image sources through the shared HTTPS URL policy" in changes_text,
+            "Project guidance must document the server-side Picasa image URL boundary",
             failures)
     require("Malformed Picasa feed objects" in vision_text and "non-list entry containers" in vision_text,
             "VISION must describe the Picasa feed-container shape guard",
@@ -627,6 +662,28 @@ jobs:
             and all(item in picasa_source_verification for item in picasa_source_required_evidence)
             and re.search(r"\b(?:pending|todo|tbd|not run|not yet)\b", picasa_source_verification, re.IGNORECASE) is None,
             "Picasa source-shape plan must record completed status and actual verification",
+            failures)
+    picasa_url_statuses = re.findall(
+        r"^status: .+$", picasa_url_boundary_plan_text, flags=re.MULTILINE
+    )
+    picasa_url_sections = picasa_url_boundary_plan_text.split(
+        "## Verification Completed", 1
+    )
+    picasa_url_verification = (
+        picasa_url_sections[1] if len(picasa_url_sections) == 2 else ""
+    )
+    picasa_url_required_evidence = (
+        "focused and all characterization tests passed",
+        "All four Make gates passed",
+        "repository-root and external-directory `make check` passed",
+        "Python 2.7 `picasa.py` compilation passed",
+        "Five isolated hostile mutations were rejected",
+        "No live Picasa request was executed",
+    )
+    require(picasa_url_statuses == ["status: completed"]
+            and all(item in picasa_url_verification for item in picasa_url_required_evidence)
+            and re.search(r"\b(?:pending|todo|tbd|not run|not yet)\b", picasa_url_verification, re.IGNORECASE) is None,
+            "Picasa URL-boundary plan must record completed status and actual verification",
             failures)
     instagram_container_statuses = re.findall(
         r"^status: .+$", instagram_container_shape_plan_text, flags=re.MULTILINE

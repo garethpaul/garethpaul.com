@@ -438,9 +438,35 @@ class PicasaGuardTest(unittest.TestCase):
         self.assertIsNone(picasa.picasa_entry_src({"content": {"src": source}}))
 
   def test_picasa_entry_src_preserves_unicode_source(self):
-    source = u"https://example.com/照片.jpg"
+    source = u"https://example.com:8443/照片.jpg?size=large"
 
     self.assertEqual(source, picasa.picasa_entry_src({"content": {"src": source}}))
+
+  def test_picasa_entry_src_ignores_unsafe_text_urls(self):
+    unsafe_sources = [
+      "http://example.com/image.jpg",
+      "data:image/svg+xml,<svg></svg>",
+      "/relative/image.jpg",
+      "not a URL",
+      "https://user@example.com/image.jpg",
+      "https://user:password@example.com/image.jpg",
+      "https://example.com/image.jpg#fragment",
+    ]
+
+    for source in unsafe_sources:
+      with self.subTest(source=source):
+        self.assertIsNone(picasa.picasa_entry_src({"content": {"src": source}}))
+
+  def test_picasa_entry_src_keeps_valid_sibling_after_unsafe_source(self):
+    entries = [
+      {"content": {"src": "http://example.com/insecure.jpg"}},
+      {"content": {"src": "https://example.com/safe.jpg"}},
+    ]
+
+    self.assertEqual(
+      [None, "https://example.com/safe.jpg"],
+      [picasa.picasa_entry_src(entry) for entry in entries],
+    )
 
 
 if __name__ == "__main__":

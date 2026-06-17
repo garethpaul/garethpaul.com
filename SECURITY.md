@@ -43,6 +43,9 @@ Picasa album proxy parsing should skip malformed entries rather than letting one
 partial provider record fail the full image response.
 Picasa image source fields must be text before entering the JSON image list so
 provider objects, arrays, booleans, and numbers cannot cross that boundary.
+Picasa image source URLs must use HTTPS, include a host, and omit embedded
+credentials and fragments before the server publishes them. The browser's
+HTTPS image filter remains an independent defense for rendered content.
 Picasa feed containers should be type-checked before nested lookup or iteration
 so provider shape drift cannot trigger handler failures or unintended traversal.
 Instagram pagination and media containers should be type-checked on every page
