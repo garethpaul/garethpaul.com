@@ -103,5 +103,9 @@ non-HTTPS sources. The server contract should fail closed for every client.
 - Five isolated hostile mutations were rejected: removing or bypassing the
   shared validator, moving URL validation before the text guard, deleting the
   hostile-URL regression contract, and weakening this evidence record.
+- Exact implementation commit
+  `7bc6301f5d743c0ca97f6486fdc84b053cfcd132` passed GitHub Actions push run
+  `27685403654` and pull-request run `27685415902`; all six matrix jobs
+  completed successfully for Python 3.10, 3.12, and 3.14.
 - No live Picasa request was executed; validation used dependency-free fixtures
   and static contracts only.

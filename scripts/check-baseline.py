@@ -678,6 +678,11 @@ jobs:
         "repository-root and external-directory `make check` passed",
         "Python 2.7 `picasa.py` compilation passed",
         "Five isolated hostile mutations were rejected",
+        "`7bc6301f5d743c0ca97f6486fdc84b053cfcd132`",
+        "`27685403654`",
+        "`27685415902`",
+        "all six matrix jobs",
+        "completed successfully for Python 3.10, 3.12, and 3.14",
         "No live Picasa request was executed",
     )
     require(picasa_url_statuses == ["status: completed"]
