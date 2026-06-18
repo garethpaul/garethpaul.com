@@ -1,5 +1,10 @@
 # Changes
 
+## 2026-06-18
+
+- Kept maintained Python syntax validation in memory so bytecode-disabled
+  checks do not repopulate repository cache artifacts.
+
 ## 2026-06-17
 
 - Filtered Picasa image sources through the shared HTTPS URL policy before API

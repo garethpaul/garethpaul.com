@@ -2,7 +2,7 @@
 title: "fix: Keep syntax checks bytecode-free"
 type: fix
 date: 2026-06-18
-status: planned
+status: completed
 ---
 
 # fix: Keep syntax checks bytecode-free
@@ -47,12 +47,18 @@ gates repopulate eleven generated files across three cache directories.
 - Normal Python behavior outside the maintained checker is unchanged.
 - Live providers and deployment remain outside this offline validation task.
 
-## Verification Planned
+## Verification Completed
 
-- Run the focused no-bytecode regression and all characterization tests.
-- Run `make check` from the repository root and from `/tmp` with bytecode writes
-  disabled, then prove no cache artifact remains.
-- Reject mutations that restore `py_compile`, remove in-memory compilation,
-  remove the subprocess cache assertion, or weaken plan evidence.
-- Audit the exact diff, whitespace, conflict markers, generated artifacts, and
-  credential-shaped values before commit and push.
+- The focused no-bytecode subprocess regression passed and the complete suite
+  passed all 31 characterization tests.
+- Bytecode-disabled `make check` passed from the repository root and from
+  `/tmp`, preserving the location-independent gate.
+- The subprocess checker's redirected cache directory remained empty, and the
+  final repository artifact scan found no `__pycache__` directory or `.pyc`
+  file.
+- Six isolated hostile mutations were rejected: restoring `py_compile`,
+  removing in-memory compilation, removing cache-prefix isolation, weakening
+  the empty-cache assertion, reverting plan status, and deleting required
+  verification evidence.
+- No App Engine deployment, private configuration, provider credential, or
+  live provider request was executed or claimed.
