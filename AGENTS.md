@@ -28,6 +28,8 @@
 ## Testing guidance
 
 - `tests/test_integration_guards.py` and `tests/test_template_image_rendering.py` provide dependency-free characterization coverage; `make check` is the maintained full gate.
+- Canonical Make gates must disable Python bytecode writes so verification does
+  not create repository-local cache artifacts.
 - Start with the narrowest relevant test or Make target, then run `make check` before handing off if the change is not documentation-only.
 - Keep README verification notes in sync when commands, fixtures, or supported toolchains change.
 

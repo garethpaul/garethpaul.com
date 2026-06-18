@@ -27,6 +27,7 @@ Priority:
 - Keep hosted characterization coverage green on Python 3.10, 3.12, and 3.14
 - Offline verification uses one explicit, fail-fast Python 3 command while the
   deployment remains Python 2.
+- Keep every canonical Make gate bytecode-free without caller configuration.
 - Keep hosted checks pinned, read-only, credential-free, and non-deploying
 - Keep every outbound provider request behind the shared 10-second deadline
 - Refuse automatic provider redirects before validated URLs or bearer headers

@@ -2,6 +2,7 @@
 
 ROOT := $(abspath $(dir $(lastword $(MAKEFILE_LIST))))
 PYTHON ?= python3
+override export PYTHONDONTWRITEBYTECODE := 1
 
 lint build: check
 

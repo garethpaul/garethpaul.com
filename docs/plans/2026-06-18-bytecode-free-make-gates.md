@@ -1,7 +1,7 @@
 ---
 title: Bytecode-Free Make Gates
 type: testing
-status: planned
+status: implemented
 date: 2026-06-18
 execution: code
 ---
@@ -113,6 +113,17 @@ matrix evidence.
   checkout must not depend on deleting pre-existing user artifacts.
 - Legacy Python 2 deployment remains outside this Python 3 maintenance gate.
 
-## Verification Completed
+## Implementation Verification
 
-Pending implementation and validation.
+The Makefile now exports `PYTHONDONTWRITEBYTECODE=1` for every canonical target.
+The focused regression copies the repository without Git or bytecode artifacts,
+initializes an isolated index, explicitly removes caller bytecode variables,
+runs a child `make check`, and verifies the copied repository remains clean. A
+child marker prevents recursive execution of only that enclosing regression;
+all other tests still run in the child gate.
+
+With caller bytecode variables explicitly unset, repository-root `check`,
+`test`, `lint`, and `build` passed, and the external-directory gate passed all
+32 tests. No `__pycache__`, `.pyc`, or `.pyo` artifact appeared. Seven isolated
+mutations were rejected across the Make export and value, caller environment
+removal, child marker, artifact scan, guidance, and plan status.

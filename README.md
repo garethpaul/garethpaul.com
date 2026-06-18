@@ -67,7 +67,8 @@ The `lint` and `build` targets delegate to `make check`. The `test` target runs
 the dependency-free `tests/test_integration_guards.py` characterization tests.
 The `check` target runs both `scripts/check-baseline.py` and the
 characterization tests, verifies Python syntax, checks credential/cache
-guardrails, and does not require App Engine or private credentials.
+guardrails, and does not require App Engine or private credentials. Every
+canonical Make target disables repository bytecode writes by default.
 
 The offline gate uses the `python3` command by default. Set
 `PYTHON=/path/to/python3` on the Make command line when a compatible Python 3

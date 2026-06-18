@@ -33,6 +33,8 @@ Helpful reports include:
 - Review found secret-like configuration names that require careful review before use; changes in those areas should receive security-focused review before merge.
 - No primary dependency manifest was detected in the repository root. If dependencies are added later, include a manifest and prefer reproducible installation instructions.
 - Private App Engine configuration such as `const.py`, API keys, OAuth tokens, private media endpoints, and account-specific values must stay out of git.
+- Canonical verification disables Python bytecode writes so routine security
+  checks do not leave generated cache artifacts in the repository.
 
 ## Service and API Notes
 

@@ -2,6 +2,8 @@
 
 ## 2026-06-18
 
+- Made every canonical Make gate disable repository Python bytecode writes by
+  default and added an isolated full-gate regression.
 - Kept maintained Python syntax validation in memory so bytecode-disabled
   checks do not repopulate repository cache artifacts.
 
