@@ -904,41 +904,39 @@ jobs:
     make_bytecode_statuses = re.findall(
         r"^status: .+$", bytecode_free_make_plan_text, flags=re.MULTILINE
     )
+    make_bytecode_sections = bytecode_free_make_plan_text.split(
+        "## Verification Completed\n", 1
+    )
+    make_bytecode_verification = (
+        make_bytecode_sections[1] if len(make_bytecode_sections) == 2 else ""
+    )
+    normalized_make_bytecode_verification = re.sub(
+        r"\s+", " ", make_bytecode_verification
+    )
+    make_bytecode_required_evidence = (
+        "32 tests",
+        "repository and external directories",
+        "Seven isolated mutations were rejected",
+        "Both exact-head push and pull-request matrices passed",
+        "`bed0730fc3af83c7adfff4db3658b6f239858487`",
+        "Push run `27740369211`",
+        "pull-request run `27740378206`",
+        "no bytecode artifact was generated",
+    )
     require(
-        make_bytecode_statuses in (["status: implemented"], ["status: completed"]),
-        "Bytecode-free Make gate plan must record implemented or completed status",
+        make_bytecode_statuses == ["status: completed"]
+        and all(
+            item in normalized_make_bytecode_verification
+            for item in make_bytecode_required_evidence
+        )
+        and re.search(
+            r"\b(?:pending|todo|tbd|not run|not yet)\b",
+            make_bytecode_verification,
+            re.IGNORECASE,
+        ) is None,
+        "Bytecode-free Make gate plan must record completed local and hosted verification",
         failures,
     )
-    if make_bytecode_statuses == ["status: completed"]:
-        make_bytecode_sections = bytecode_free_make_plan_text.split(
-            "## Verification Completed\n", 1
-        )
-        make_bytecode_verification = (
-            make_bytecode_sections[1] if len(make_bytecode_sections) == 2 else ""
-        )
-        normalized_make_bytecode_verification = re.sub(
-            r"\s+", " ", make_bytecode_verification
-        )
-        make_bytecode_required_evidence = (
-            "32 tests",
-            "repository and external directories",
-            "isolated mutations were rejected",
-            "Both exact-head push and pull-request matrices passed",
-            "No bytecode artifact was generated",
-        )
-        require(
-            all(
-                item in normalized_make_bytecode_verification
-                for item in make_bytecode_required_evidence
-            )
-            and re.search(
-                r"\b(?:pending|todo|tbd|not run|not yet)\b",
-                make_bytecode_verification,
-                re.IGNORECASE,
-            ) is None,
-            "Completed bytecode-free Make gate plan must record actual verification",
-            failures,
-        )
 
     require(
         "Every canonical Make target disables repository bytecode writes by default" in " ".join(readme_text.split())

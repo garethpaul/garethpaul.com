@@ -1,7 +1,7 @@
 ---
 title: Bytecode-Free Make Gates
 type: testing
-status: implemented
+status: completed
 date: 2026-06-18
 execution: code
 ---
@@ -113,7 +113,7 @@ matrix evidence.
   checkout must not depend on deleting pre-existing user artifacts.
 - Legacy Python 2 deployment remains outside this Python 3 maintenance gate.
 
-## Implementation Verification
+## Verification Completed
 
 The Makefile now exports `PYTHONDONTWRITEBYTECODE=1` for every canonical target.
 The focused regression copies the repository without Git or bytecode artifacts,
@@ -127,3 +127,9 @@ With caller bytecode variables explicitly unset, repository-root `check`,
 32 tests. No `__pycache__`, `.pyc`, or `.pyo` artifact appeared. Seven isolated
 mutations were rejected across the Make export and value, caller environment
 removal, child marker, artifact scan, guidance, and plan status.
+
+Both exact-head push and pull-request matrices passed at implementation head
+`bed0730fc3af83c7adfff4db3658b6f239858487`. Push run `27740369211` and
+pull-request run `27740378206` passed on Python 3.10, 3.12, and 3.14. The
+repository and external directories each passed the maintained gate with 32
+tests, and no bytecode artifact was generated.
