@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 from pathlib import Path
 import py_compile
+import re
 import sys
 
 
@@ -369,8 +370,27 @@ jobs:
     require("status: completed" in outbound_timeout_plan_text and "10-second timeout" in outbound_timeout_plan_text and "direct provider `urllib2.urlopen` call" in outbound_timeout_plan_text,
             "Outbound HTTP timeout plan must record the completed deadline and mutation contract",
             failures)
-    require("status: completed" in provider_response_limit_plan_text and "1 MiB" in provider_response_limit_plan_text and "extra-byte read" in provider_response_limit_plan_text,
-            "Provider response-size plan must record the completed memory and mutation contract",
+    provider_response_statuses = re.findall(
+        r"^status: .+$", provider_response_limit_plan_text, flags=re.MULTILINE
+    )
+    provider_response_sections = provider_response_limit_plan_text.split(
+        "## Verification Completed\n", 1
+    )
+    provider_response_verification = (
+        provider_response_sections[1] if len(provider_response_sections) == 2 else ""
+    )
+    provider_response_required_evidence = (
+        "All four Make gates, 13 characterization tests",
+        "push run `27393292065`",
+        "pull-request run `27393296845`",
+        "push run `27393311075`",
+        "CodeQL run `27402321576`",
+        "Mutations removing the extra-byte read",
+    )
+    require(provider_response_statuses == ["status: completed"]
+            and all(item in provider_response_verification for item in provider_response_required_evidence)
+            and re.search(r"\b(?:pending|todo|tbd|not run)\b", provider_response_verification, re.IGNORECASE) is None,
+            "Provider response-size plan must record completed status and actual verification",
             failures)
     require("status: completed" in ci_security_plan_text and "persist-credentials: false" in ci_security_plan_text and "duplicate" in ci_security_plan_text,
             "CI least-privilege plan must record the completed credential and duplicate-key mutation contract",
