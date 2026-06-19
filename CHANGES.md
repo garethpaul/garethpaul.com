@@ -2,6 +2,8 @@
 
 ## 2026-06-17
 
+- Filtered Picasa image sources through the shared HTTPS URL policy before API
+  publication while retaining the browser's independent HTTPS image filter.
 - Normalized non-text Picasa image source values to no image while preserving
   valid Unicode URL strings.
 

@@ -43,7 +43,10 @@ def picasa_entry_src(entry):
   source = content.get('src')
   if not isinstance(source, STRING_TYPES):
     return None
-  return source
+  try:
+    return require_https_url(source, "Picasa image source")
+  except ValueError:
+    return None
 
 
 class PicasaHandler(Base):
