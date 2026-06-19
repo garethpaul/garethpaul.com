@@ -2,6 +2,8 @@
 
 ## 2026-06-13
 
+- Made legacy API verification independent of the caller's working directory
+  by rooting checker and unittest execution in the loaded Makefile.
 - Normalized malformed Instagram pagination and media containers on both pages
   before following pagination or combining provider values.
 - Normalized malformed Picasa feed objects and non-list entry containers to the

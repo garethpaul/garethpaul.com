@@ -24,6 +24,7 @@ CI_SECURITY_PLAN = ROOT / "docs/plans/2026-06-12-ci-least-privilege-contract.md"
 PROVIDER_JSON_OBJECT_PLAN = ROOT / "docs/plans/2026-06-13-provider-json-object-shape.md"
 PICASA_FEED_SHAPE_PLAN = ROOT / "docs/plans/2026-06-13-picasa-feed-container-shape.md"
 INSTAGRAM_CONTAINER_SHAPE_PLAN = ROOT / "docs/plans/2026-06-13-instagram-container-shape.md"
+LOCATION_INDEPENDENT_MAKE_PLAN = ROOT / "docs/plans/2026-06-13-location-independent-make.md"
 BUG = ROOT / "docs/bugs/p2-python-access-token-in-url-query-c765eb4838c12375.md"
 
 
@@ -77,6 +78,7 @@ def main():
         "docs/plans/2026-06-13-provider-json-object-shape.md",
         "docs/plans/2026-06-13-picasa-feed-container-shape.md",
         "docs/plans/2026-06-13-instagram-container-shape.md",
+        "docs/plans/2026-06-13-location-independent-make.md",
         "docs/bugs/p2-python-access-token-in-url-query-c765eb4838c12375.md",
     ]
 
@@ -113,6 +115,7 @@ def main():
     provider_json_object_plan_text = PROVIDER_JSON_OBJECT_PLAN.read_text(encoding="utf-8") if PROVIDER_JSON_OBJECT_PLAN.exists() else ""
     picasa_feed_shape_plan_text = PICASA_FEED_SHAPE_PLAN.read_text(encoding="utf-8") if PICASA_FEED_SHAPE_PLAN.exists() else ""
     instagram_container_shape_plan_text = INSTAGRAM_CONTAINER_SHAPE_PLAN.read_text(encoding="utf-8") if INSTAGRAM_CONTAINER_SHAPE_PLAN.exists() else ""
+    location_independent_make_plan_text = LOCATION_INDEPENDENT_MAKE_PLAN.read_text(encoding="utf-8") if LOCATION_INDEPENDENT_MAKE_PLAN.exists() else ""
     app_yaml = read("app.yaml")
     makefile_text = read("Makefile")
     workflow_text = read(".github/workflows/check.yml")
@@ -124,7 +127,11 @@ def main():
     require("debug=False" in main_source and "debug=True" not in main_source,
             "main.py must keep public webapp2 debug output disabled",
             failures)
-    require(".PHONY: build check lint test" in makefile_text and "lint build: check" in makefile_text and "python3 -m unittest discover -s tests" in makefile_text,
+    require(".PHONY: build check lint test" in makefile_text
+            and "lint build: check" in makefile_text
+            and 'ROOT := $(abspath $(dir $(lastword $(MAKEFILE_LIST))))' in makefile_text
+            and 'cd "$(ROOT)" && ./scripts/check-baseline.py' in makefile_text
+            and makefile_text.count('cd "$(ROOT)" && python3 -m unittest discover -s tests') == 2,
             "Makefile must expose lint, test, build, and check gate targets with characterization tests",
             failures)
     expected_workflow_text = """name: Check
@@ -523,6 +530,37 @@ jobs:
             and all(item in instagram_container_verification for item in instagram_container_required_evidence)
             and re.search(r"\b(?:pending|todo|tbd|not run)\b", instagram_container_verification, re.IGNORECASE) is None,
             "Instagram container-shape plan must record completed status and actual verification",
+            failures)
+    location_independent_make_statuses = re.findall(
+        r"^status: .+$", location_independent_make_plan_text, flags=re.MULTILINE
+    )
+    location_independent_make_sections = location_independent_make_plan_text.split(
+        "## Verification Completed\n", 1
+    )
+    location_independent_make_verification = (
+        location_independent_make_sections[1]
+        if len(location_independent_make_sections) == 2
+        else ""
+    )
+    location_independent_make_required_evidence = (
+        "20 tests",
+        "All four Make gates",
+        "from /tmp",
+        "root-derivation mutation failed",
+        "checker-command mutation failed",
+        "unittest-command mutation failed",
+        "plan-status mutation failed",
+        "plan-evidence mutation failed",
+        "documentation mutation failed",
+    )
+    require(location_independent_make_statuses == ["status: completed"]
+            and all(item in location_independent_make_verification for item in location_independent_make_required_evidence)
+            and re.search(r"\b(?:pending|todo|tbd|not run)\b", location_independent_make_verification, re.IGNORECASE) is None,
+            "Location-independent Make plan must record completed status and actual verification",
+            failures)
+    require("absolute Makefile path" in readme_text
+            and "Made legacy API verification independent" in changes_text,
+            "README and CHANGES must document location-independent Make verification",
             failures)
 
     python_paths = sorted(ROOT.glob("*.py")) + sorted((ROOT / "tests").glob("*.py")) + [ROOT / "scripts/check-baseline.py"]
