@@ -33,6 +33,7 @@ INSTAGRAM_PAGINATION_URL_PLAN = ROOT / "docs/plans/2026-06-16-instagram-paginati
 PICASA_SOURCE_SHAPE_PLAN = ROOT / "docs/plans/2026-06-17-picasa-image-source-shape.md"
 PICASA_URL_BOUNDARY_PLAN = ROOT / "docs/plans/2026-06-17-002-fix-picasa-image-url-boundary-plan.md"
 BYTECODE_FREE_SYNTAX_PLAN = ROOT / "docs/plans/2026-06-18-bytecode-free-syntax-check.md"
+BYTECODE_FREE_MAKE_PLAN = ROOT / "docs/plans/2026-06-18-bytecode-free-make-gates.md"
 BUG = ROOT / "docs/bugs/p2-python-access-token-in-url-query-c765eb4838c12375.md"
 
 
@@ -72,6 +73,7 @@ def main():
         "templates/stream.html",
         "tests/test_integration_guards.py",
         "tests/test_baseline_no_bytecode.py",
+        "tests/test_make_gates_no_bytecode.py",
         "tests/test_template_image_rendering.py",
         "scripts/check-provider-json-media.py",
         "scripts/check-python3.sh",
@@ -101,6 +103,7 @@ def main():
         "docs/plans/2026-06-17-picasa-image-source-shape.md",
         "docs/plans/2026-06-17-002-fix-picasa-image-url-boundary-plan.md",
         "docs/plans/2026-06-18-bytecode-free-syntax-check.md",
+        "docs/plans/2026-06-18-bytecode-free-make-gates.md",
         "docs/bugs/p2-python-access-token-in-url-query-c765eb4838c12375.md",
     ]
 
@@ -144,8 +147,10 @@ def main():
     picasa_source_shape_plan_text = PICASA_SOURCE_SHAPE_PLAN.read_text(encoding="utf-8") if PICASA_SOURCE_SHAPE_PLAN.exists() else ""
     picasa_url_boundary_plan_text = PICASA_URL_BOUNDARY_PLAN.read_text(encoding="utf-8") if PICASA_URL_BOUNDARY_PLAN.exists() else ""
     bytecode_free_syntax_plan_text = BYTECODE_FREE_SYNTAX_PLAN.read_text(encoding="utf-8") if BYTECODE_FREE_SYNTAX_PLAN.exists() else ""
+    bytecode_free_make_plan_text = BYTECODE_FREE_MAKE_PLAN.read_text(encoding="utf-8") if BYTECODE_FREE_MAKE_PLAN.exists() else ""
     baseline_check_text = read("scripts/check-baseline.py")
     bytecode_test_text = read("tests/test_baseline_no_bytecode.py")
+    make_bytecode_test_text = read("tests/test_make_gates_no_bytecode.py")
     python_preflight_text = read("scripts/check-python3.sh")
     app_yaml = read("app.yaml")
     makefile_text = read("Makefile")
@@ -162,6 +167,8 @@ def main():
             and "lint build: check" in makefile_text
             and 'ROOT := $(abspath $(dir $(lastword $(MAKEFILE_LIST))))' in makefile_text
             and "PYTHON ?= python3" in makefile_text
+            and "override PYTHONDONTWRITEBYTECODE := 1" in makefile_text
+            and "export PYTHONDONTWRITEBYTECODE" in makefile_text
             and makefile_text.count('PYTHON="$(PYTHON)" "$(ROOT)/scripts/check-python3.sh"') == 2
             and 'cd "$(ROOT)" && "$(PYTHON)" scripts/check-baseline.py' in makefile_text
             and makefile_text.count('cd "$(ROOT)" && "$(PYTHON)" -m unittest discover -s tests') == 2,
@@ -876,6 +883,69 @@ jobs:
             re.IGNORECASE,
         ) is None,
         "Bytecode-free syntax plan must record completed status and actual verification",
+        failures,
+    )
+
+    require(
+        all(
+            item in make_bytecode_test_text
+            for item in (
+                'CHILD_MARKER = "GARETHPAUL_BYTECODE_GATE_CHILD"',
+                'env.pop("PYTHONDONTWRITEBYTECODE", None)',
+                'env.pop("PYTHONPYCACHEPREFIX", None)',
+                '["make", "check"]',
+                'path.name == "__pycache__"',
+                'path.suffix in {".pyc", ".pyo"}',
+                "self.assertEqual([], bytecode_paths)",
+            )
+        ),
+        "Make gate bytecode regression must unset caller controls, run check, and assert no repository artifacts",
+        failures,
+    )
+    make_bytecode_statuses = re.findall(
+        r"^status: .+$", bytecode_free_make_plan_text, flags=re.MULTILINE
+    )
+    make_bytecode_sections = bytecode_free_make_plan_text.split(
+        "## Verification Completed\n", 1
+    )
+    make_bytecode_verification = (
+        make_bytecode_sections[1] if len(make_bytecode_sections) == 2 else ""
+    )
+    normalized_make_bytecode_verification = re.sub(
+        r"\s+", " ", make_bytecode_verification
+    )
+    make_bytecode_required_evidence = (
+        "32 tests",
+        "repository and external directories",
+        "Seven isolated mutations were rejected",
+        "Both exact-head push and pull-request matrices passed",
+        "`bed0730fc3af83c7adfff4db3658b6f239858487`",
+        "Push run `27740369211`",
+        "pull-request run `27740378206`",
+        "no bytecode artifact was generated",
+    )
+    require(
+        make_bytecode_statuses == ["status: completed"]
+        and all(
+            item in normalized_make_bytecode_verification
+            for item in make_bytecode_required_evidence
+        )
+        and re.search(
+            r"\b(?:pending|todo|tbd|not run|not yet)\b",
+            make_bytecode_verification,
+            re.IGNORECASE,
+        ) is None,
+        "Bytecode-free Make gate plan must record completed local and hosted verification",
+        failures,
+    )
+
+    require(
+        "Every canonical Make target disables repository bytecode writes by default" in " ".join(readme_text.split())
+        and "Canonical verification disables Python bytecode writes" in " ".join(security_text.split())
+        and "Keep every canonical Make gate bytecode-free" in " ".join(vision_text.split())
+        and "Made every canonical Make gate disable repository Python bytecode writes" in " ".join(changes_text.split())
+        and "Canonical Make gates must disable Python bytecode writes" in " ".join(agents_text.split()),
+        "Project guidance must preserve bytecode-free canonical Make gates",
         failures,
     )
 
