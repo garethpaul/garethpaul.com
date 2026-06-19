@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 from pathlib import Path
-import py_compile
 import re
 import subprocess
 import sys
@@ -33,6 +32,7 @@ PYTHON_PREFLIGHT_PLAN = ROOT / "docs/plans/2026-06-16-python-verification-prefli
 INSTAGRAM_PAGINATION_URL_PLAN = ROOT / "docs/plans/2026-06-16-instagram-pagination-url-shape.md"
 PICASA_SOURCE_SHAPE_PLAN = ROOT / "docs/plans/2026-06-17-picasa-image-source-shape.md"
 PICASA_URL_BOUNDARY_PLAN = ROOT / "docs/plans/2026-06-17-002-fix-picasa-image-url-boundary-plan.md"
+BYTECODE_FREE_SYNTAX_PLAN = ROOT / "docs/plans/2026-06-18-bytecode-free-syntax-check.md"
 BUG = ROOT / "docs/bugs/p2-python-access-token-in-url-query-c765eb4838c12375.md"
 
 
@@ -43,6 +43,10 @@ def require(condition, message, failures):
 
 def read(relative_path):
     return (ROOT / relative_path).read_text(encoding="utf-8")
+
+
+def compile_python_source(path):
+    compile(path.read_text(encoding="utf-8"), str(path), "exec")
 
 
 def main():
@@ -67,6 +71,7 @@ def main():
         "templates/picture.html",
         "templates/stream.html",
         "tests/test_integration_guards.py",
+        "tests/test_baseline_no_bytecode.py",
         "tests/test_template_image_rendering.py",
         "scripts/check-provider-json-media.py",
         "scripts/check-python3.sh",
@@ -95,6 +100,7 @@ def main():
         "docs/plans/2026-06-16-instagram-pagination-url-shape.md",
         "docs/plans/2026-06-17-picasa-image-source-shape.md",
         "docs/plans/2026-06-17-002-fix-picasa-image-url-boundary-plan.md",
+        "docs/plans/2026-06-18-bytecode-free-syntax-check.md",
         "docs/bugs/p2-python-access-token-in-url-query-c765eb4838c12375.md",
     ]
 
@@ -137,6 +143,9 @@ def main():
     instagram_pagination_url_plan_text = INSTAGRAM_PAGINATION_URL_PLAN.read_text(encoding="utf-8") if INSTAGRAM_PAGINATION_URL_PLAN.exists() else ""
     picasa_source_shape_plan_text = PICASA_SOURCE_SHAPE_PLAN.read_text(encoding="utf-8") if PICASA_SOURCE_SHAPE_PLAN.exists() else ""
     picasa_url_boundary_plan_text = PICASA_URL_BOUNDARY_PLAN.read_text(encoding="utf-8") if PICASA_URL_BOUNDARY_PLAN.exists() else ""
+    bytecode_free_syntax_plan_text = BYTECODE_FREE_SYNTAX_PLAN.read_text(encoding="utf-8") if BYTECODE_FREE_SYNTAX_PLAN.exists() else ""
+    baseline_check_text = read("scripts/check-baseline.py")
+    bytecode_test_text = read("tests/test_baseline_no_bytecode.py")
     python_preflight_text = read("scripts/check-python3.sh")
     app_yaml = read("app.yaml")
     makefile_text = read("Makefile")
@@ -812,11 +821,69 @@ jobs:
             media_check.stderr.strip() or "Provider JSON media type contract failed",
             failures)
 
+    compile_helper_signature = "def compile_python_" + "source(path):"
+    compile_expression = (
+        'compile(path.read_text' + '(encoding="utf-8"), str(path), "exec")'
+    )
+    require(
+        ("import " + "py_compile") not in baseline_check_text
+        and compile_helper_signature in baseline_check_text
+        and compile_expression in baseline_check_text,
+        "Python syntax validation must compile source in memory without py_compile",
+        failures,
+    )
+    require(
+        all(
+            item in bytecode_test_text
+            for item in (
+                'env["PYTHONDONTWRITEBYTECODE"] = "1"',
+                'env["PYTHONPYCACHEPREFIX"] = str(cache_root)',
+                'ROOT / "scripts/check-baseline.py"',
+                'cache_root.rglob("*")',
+                "self.assertEqual([], cache_files)",
+            )
+        ),
+        "No-bytecode regression must execute the checker and assert the redirected cache stays empty",
+        failures,
+    )
+    bytecode_free_statuses = re.findall(
+        r"^status: .+$", bytecode_free_syntax_plan_text, flags=re.MULTILINE
+    )
+    bytecode_free_sections = bytecode_free_syntax_plan_text.split(
+        "## Verification Completed\n", 1
+    )
+    bytecode_free_verification = (
+        bytecode_free_sections[1] if len(bytecode_free_sections) == 2 else ""
+    )
+    normalized_bytecode_free_verification = re.sub(
+        r"\s+", " ", bytecode_free_verification
+    )
+    bytecode_free_required_evidence = (
+        "31 characterization tests",
+        "repository root and from `/tmp`",
+        "redirected cache directory remained empty",
+        "Six isolated hostile mutations were rejected",
+    )
+    require(
+        bytecode_free_statuses == ["status: completed"]
+        and all(
+            item in normalized_bytecode_free_verification
+            for item in bytecode_free_required_evidence
+        )
+        and re.search(
+            r"\b(?:pending|todo|tbd|not run|not yet)\b",
+            bytecode_free_verification,
+            re.IGNORECASE,
+        ) is None,
+        "Bytecode-free syntax plan must record completed status and actual verification",
+        failures,
+    )
+
     python_paths = sorted(ROOT.glob("*.py")) + sorted((ROOT / "tests").glob("*.py")) + [ROOT / "scripts/check-baseline.py", PROVIDER_JSON_MEDIA_CHECK]
     for path in python_paths:
         try:
-            py_compile.compile(str(path), doraise=True)
-        except py_compile.PyCompileError as error:
+            compile_python_source(path)
+        except (OSError, SyntaxError) as error:
             failures.append(str(error))
 
     if failures:
