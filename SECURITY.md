@@ -41,6 +41,8 @@ Browser-facing template dependencies should stay on explicit HTTPS URLs so
 third-party assets are not loaded through an inherited insecure scheme.
 Picasa album proxy parsing should skip malformed entries rather than letting one
 partial provider record fail the full image response.
+Picasa feed containers should be type-checked before nested lookup or iteration
+so provider shape drift cannot trigger handler failures or unintended traversal.
 Provider-controlled image values should be restricted to HTTPS and assigned
 through DOM properties rather than interpreted as HTML strings.
 Outbound provider requests use a shared 10-second timeout so a stalled service

@@ -269,6 +269,27 @@ class InstagramGuardTest(unittest.TestCase):
 
 
 class PicasaGuardTest(unittest.TestCase):
+  def test_picasa_entries_returns_expected_entry_list(self):
+    entries = [{"content": {"src": "https://example.com/image.jpg"}}]
+
+    self.assertEqual(entries, picasa.picasa_entries({"feed": {"entry": entries}}))
+
+  def test_picasa_entries_ignores_malformed_feed_containers(self):
+    malformed_payloads = [
+      {},
+      {"feed": None},
+      {"feed": []},
+      {"feed": "invalid"},
+      {"feed": {}},
+      {"feed": {"entry": None}},
+      {"feed": {"entry": {}}},
+      {"feed": {"entry": "invalid"}},
+    ]
+
+    for payload in malformed_payloads:
+      with self.subTest(payload=payload):
+        self.assertEqual([], picasa.picasa_entries(payload))
+
   def test_picasa_entry_src_returns_source_for_expected_entry_shape(self):
     self.assertEqual(
       "https://example.com/image.jpg",

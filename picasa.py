@@ -17,6 +17,17 @@ import const
 from base import Base, read_json_object, require_https_url
 
 
+def picasa_entries(data):
+  """Return Picasa entries only from the expected nested container shapes."""
+  feed = data.get('feed')
+  if not isinstance(feed, dict):
+    return []
+  entries = feed.get('entry', [])
+  if not isinstance(entries, list):
+    return []
+  return entries
+
+
 def picasa_entry_src(entry):
   """Return an image source only when a Picasa entry has the expected shape."""
   if not isinstance(entry, dict):
@@ -32,7 +43,7 @@ class PicasaHandler(Base):
     """ work as a proxy for the glass images api """
     data = read_json_object(require_https_url(const.picasa_api, "picasa_api"))
     self.response.headers['Content-Type'] = 'application/json'
-    entries = data.get('feed', {}).get('entry', [])
+    entries = picasa_entries(data)
     images = []
     for i in entries:
       img_src = picasa_entry_src(i)
