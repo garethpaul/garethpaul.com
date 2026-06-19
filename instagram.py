@@ -13,6 +13,11 @@ INSTAGRAM_RECENT_MEDIA_URL = (
 )
 INSTAGRAM_API_HOST = "api.instagram.com"
 
+try:
+	STRING_TYPES = (basestring,)
+except NameError:
+	STRING_TYPES = (str,)
+
 
 def _without_access_token_query(url):
 	"""Remove access_token query values before issuing or following API URLs."""
@@ -58,7 +63,10 @@ def instagram_page(data):
 	media = data.get('data', [])
 	if not isinstance(media, list):
 		media = []
-	return pagination.get('next_url'), media
+	next_url = pagination.get('next_url')
+	if not isinstance(next_url, STRING_TYPES):
+		next_url = None
+	return next_url, media
 
 
 class InstagramHandler(Base):

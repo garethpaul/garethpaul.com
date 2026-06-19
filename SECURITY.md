@@ -45,6 +45,8 @@ Picasa feed containers should be type-checked before nested lookup or iteration
 so provider shape drift cannot trigger handler failures or unintended traversal.
 Instagram pagination and media containers should be type-checked on every page
 before following pagination or combining provider values.
+Non-text Instagram pagination URL values must be treated as absent before URL
+parsing so provider shape drift cannot turn an optional field into a failure.
 Provider-controlled image values should be restricted to HTTPS and assigned
 through DOM properties rather than interpreted as HTML strings.
 Outbound provider requests use a shared 10-second timeout so a stalled service

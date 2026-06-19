@@ -316,6 +316,20 @@ class InstagramGuardTest(unittest.TestCase):
       with self.subTest(payload=payload):
         self.assertEqual((None, []), instagram.instagram_page(payload))
 
+  def test_instagram_page_ignores_non_text_pagination_urls(self):
+    media = [{"id": "one"}]
+    malformed_next_urls = [[], {}, 1, True]
+
+    for next_url in malformed_next_urls:
+      with self.subTest(next_url=next_url):
+        self.assertEqual(
+          (None, media),
+          instagram.instagram_page({
+            "pagination": {"next_url": next_url},
+            "data": media,
+          }),
+        )
+
   def test_without_access_token_query_strips_token_and_preserves_other_params(self):
     url = (
       "https://api.instagram.com/v1/users/123/media/recent"
