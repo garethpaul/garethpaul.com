@@ -15,6 +15,9 @@
 
 - Install dependencies: no repository-specific install command is documented.
 - Full baseline: `make check`
+- Offline verification uses one explicit, fail-fast Python 3 command while the
+  deployment remains Python 2. Override it with
+  `make PYTHON=/path/to/python3 check` when needed.
 - If a command above skips because a platform toolchain is missing, verify on a machine with that SDK before claiming platform behavior is tested.
 
 ## Coding conventions

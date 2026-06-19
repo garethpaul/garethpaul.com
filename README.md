@@ -36,6 +36,7 @@ Additional scan context:
 
 - Git
 - Python 3 for static verification
+- GNU Make and a POSIX shell for the maintained gates
 
 ### Setup
 
@@ -67,6 +68,12 @@ the dependency-free `tests/test_integration_guards.py` characterization tests.
 The `check` target runs both `scripts/check-baseline.py` and the
 characterization tests, verifies Python syntax, checks credential/cache
 guardrails, and does not require App Engine or private credentials.
+
+The offline gate uses the `python3` command by default. Set
+`PYTHON=/path/to/python3` on the Make command line when a compatible Python 3
+interpreter has a different name or location.
+Offline verification uses one explicit, fail-fast Python 3 command while the
+deployment remains Python 2.
 
 Use the absolute Makefile path to run the same gates from another working
 directory. Every Make recipe enters the repository root before launching the
