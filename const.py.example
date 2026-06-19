@@ -1,0 +1,11 @@
+# Copy this file to const.py for local development, or set the matching
+# GARETHPAUL_* environment variables documented in README.md.
+
+map_api_key = "replace-with-google-maps-browser-key"
+glass_url = "https://example.com/glass"
+glass_api = "https://example.com/api/glass"
+instagram_id = "replace-with-instagram-user-id"
+instagram_access_token = "replace-with-instagram-access-token"
+picasa_api = "https://example.com/api/picasa"
+map_api = "https://example.com/api/map"
+geocode_key = "replace-with-google-geocode-key"

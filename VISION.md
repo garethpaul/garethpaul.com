@@ -75,8 +75,11 @@ normalize safely before either provider page is combined.
 Non-text Instagram pagination URL values should normalize to no next page while
 preserving valid media from the current provider response.
 The public webapp2 app keeps debug output disabled. Private integration endpoints
-loaded from local `const.py` must also be HTTPS URLs with hosts and no embedded credentials or fragments before proxy handlers fetch them.
-The template-facing Glass URL from `const.py` must also be validated before stream templates render it into client-side image URLs.
+loaded through `settings.py` must also be HTTPS URLs with hosts and no embedded credentials or fragments before proxy handlers fetch them.
+`settings.py` sources ignored local `const.py` values or documented
+`GARETHPAUL_*` environment variables without committing secrets. The
+template-facing Glass URL from `settings.py` must also be validated before
+stream templates render it into client-side image URLs.
 Empty Picasa feed responses should continue to return an empty image list
 instead of raising while the legacy album integration remains available.
 Malformed Picasa album entries should be skipped so partial provider records do

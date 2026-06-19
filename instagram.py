@@ -5,7 +5,7 @@ import urlparse
 import urllib
 import urllib2
 import json
-import const
+import settings as const
 from base import Base, decode_json_object, read_url
 
 INSTAGRAM_RECENT_MEDIA_URL = (
