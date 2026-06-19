@@ -31,6 +31,7 @@ PROVIDER_JSON_MEDIA_PLAN = ROOT / "docs/plans/2026-06-14-provider-json-media-typ
 PROVIDER_JSON_MEDIA_CHECK = ROOT / "scripts/check-provider-json-media.py"
 PYTHON_PREFLIGHT_PLAN = ROOT / "docs/plans/2026-06-16-python-verification-preflight.md"
 INSTAGRAM_PAGINATION_URL_PLAN = ROOT / "docs/plans/2026-06-16-instagram-pagination-url-shape.md"
+PICASA_SOURCE_SHAPE_PLAN = ROOT / "docs/plans/2026-06-17-picasa-image-source-shape.md"
 BUG = ROOT / "docs/bugs/p2-python-access-token-in-url-query-c765eb4838c12375.md"
 
 
@@ -91,6 +92,7 @@ def main():
         "docs/plans/2026-06-14-provider-json-media-type-boundary.md",
         "docs/plans/2026-06-16-python-verification-preflight.md",
         "docs/plans/2026-06-16-instagram-pagination-url-shape.md",
+        "docs/plans/2026-06-17-picasa-image-source-shape.md",
         "docs/bugs/p2-python-access-token-in-url-query-c765eb4838c12375.md",
     ]
 
@@ -131,6 +133,7 @@ def main():
     provider_redirect_plan_text = PROVIDER_REDIRECT_PLAN.read_text(encoding="utf-8") if PROVIDER_REDIRECT_PLAN.exists() else ""
     python_preflight_plan_text = PYTHON_PREFLIGHT_PLAN.read_text(encoding="utf-8") if PYTHON_PREFLIGHT_PLAN.exists() else ""
     instagram_pagination_url_plan_text = INSTAGRAM_PAGINATION_URL_PLAN.read_text(encoding="utf-8") if INSTAGRAM_PAGINATION_URL_PLAN.exists() else ""
+    picasa_source_shape_plan_text = PICASA_SOURCE_SHAPE_PLAN.read_text(encoding="utf-8") if PICASA_SOURCE_SHAPE_PLAN.exists() else ""
     python_preflight_text = read("scripts/check-python3.sh")
     app_yaml = read("app.yaml")
     makefile_text = read("Makefile")
@@ -336,8 +339,18 @@ jobs:
     require("def picasa_entry_src" in picasa_source and "isinstance(entry, dict)" in picasa_source and "isinstance(content, dict)" in picasa_source,
             "picasa.py must parse album entry image sources through a shape guard",
             failures)
+    require("STRING_TYPES = (basestring,)" in picasa_source
+            and "STRING_TYPES = (str,)" in picasa_source
+            and "if not isinstance(source, STRING_TYPES):" in picasa_source,
+            "picasa.py must accept only Python 2/3 text image sources",
+            failures)
     require("img_src = picasa_entry_src(i)" in picasa_source and "if img_src:" in picasa_source,
             "picasa.py must skip malformed Picasa entries instead of raising",
+            failures)
+    require("test_picasa_entry_src_ignores_non_text_sources" in integration_guard_tests
+            and "test_picasa_entry_src_preserves_unicode_source" in integration_guard_tests
+            and '"url": "https://example.com/image.jpg"' in integration_guard_tests,
+            "Picasa source-shape regressions must cover truthy non-text and Unicode values",
             failures)
     require("base.require_https_url" in integration_guard_tests and "base.open_url" in integration_guard_tests and "base.HTTP_TIMEOUT_SECONDS" in integration_guard_tests and "base.PROVIDER_OPENER" in integration_guard_tests and "base.RejectRedirectHandler" in integration_guard_tests and "test_redirect_handler_refuses_redirect_request_creation" in integration_guard_tests and "test_provider_opener_installs_one_redirect_rejection_handler" in integration_guard_tests and "base.read_url" in integration_guard_tests and "base.MAX_PROVIDER_RESPONSE_BYTES" in integration_guard_tests and "response.closed" in integration_guard_tests and "instagram.instagram_request" in integration_guard_tests and "picasa.picasa_entries" in integration_guard_tests and "picasa.picasa_entry_src" in integration_guard_tests,
             "integration characterization tests must exercise private URL, redirect, timeout, response-size, Instagram, and Picasa guards",
@@ -436,6 +449,13 @@ jobs:
             failures)
     require("Malformed Picasa album entries" in vision_text,
             "VISION must describe the Picasa entry shape guard",
+            failures)
+    require("Picasa image sources accept only text values" in readme_text
+            and "Picasa image source fields must be text" in security_text
+            and "Picasa image source fields should normalize non-text values" in vision_text
+            and "Normalized non-text Picasa image source values" in changes_text
+            and "Non-text Picasa image source values must normalize to no image" in agents_text,
+            "Project guidance must document the Picasa image source shape guard",
             failures)
     require("Malformed Picasa feed objects" in vision_text and "non-list entry containers" in vision_text,
             "VISION must describe the Picasa feed-container shape guard",
@@ -586,6 +606,27 @@ jobs:
             and all(item in picasa_feed_verification for item in picasa_feed_required_evidence)
             and re.search(r"\b(?:pending|todo|tbd|not run)\b", picasa_feed_verification, re.IGNORECASE) is None,
             "Picasa feed-container plan must record completed status and actual verification",
+            failures)
+    picasa_source_statuses = re.findall(
+        r"^status: .+$", picasa_source_shape_plan_text, flags=re.MULTILINE
+    )
+    picasa_source_sections = picasa_source_shape_plan_text.split(
+        "## Verification Completed", 1
+    )
+    picasa_source_verification = (
+        picasa_source_sections[1] if len(picasa_source_sections) == 2 else ""
+    )
+    picasa_source_required_evidence = (
+        "28 tests",
+        "repository-root and external-directory `make check`",
+        "Python 2.7 `picasa.py` compilation passed",
+        "Five isolated hostile mutations were rejected",
+        "No live Picasa request was executed",
+    )
+    require(picasa_source_statuses == ["status: completed"]
+            and all(item in picasa_source_verification for item in picasa_source_required_evidence)
+            and re.search(r"\b(?:pending|todo|tbd|not run|not yet)\b", picasa_source_verification, re.IGNORECASE) is None,
+            "Picasa source-shape plan must record completed status and actual verification",
             failures)
     instagram_container_statuses = re.findall(
         r"^status: .+$", instagram_container_shape_plan_text, flags=re.MULTILINE

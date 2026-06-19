@@ -423,6 +423,25 @@ class PicasaGuardTest(unittest.TestCase):
       with self.subTest(entry=entry):
         self.assertIsNone(picasa.picasa_entry_src(entry))
 
+  def test_picasa_entry_src_ignores_non_text_sources(self):
+    malformed_sources = [
+      [],
+      ["https://example.com/image.jpg"],
+      {},
+      {"url": "https://example.com/image.jpg"},
+      1,
+      True,
+    ]
+
+    for source in malformed_sources:
+      with self.subTest(source=source):
+        self.assertIsNone(picasa.picasa_entry_src({"content": {"src": source}}))
+
+  def test_picasa_entry_src_preserves_unicode_source(self):
+    source = u"https://example.com/照片.jpg"
+
+    self.assertEqual(source, picasa.picasa_entry_src({"content": {"src": source}}))
+
 
 if __name__ == "__main__":
   unittest.main()

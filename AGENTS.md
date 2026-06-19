@@ -51,6 +51,8 @@
 - Private endpoints loaded from local `const.py`, including map location, Picasa, and Glass URLs, are validated as HTTPS URLs with hosts and no embedded credentials or fragments before the app fetches them.
 - Normalize malformed Picasa feed objects and non-list entry containers before
   nested lookup or iteration; preserve the empty image-list fallback.
+- Non-text Picasa image source values must normalize to no image before handler
+  output; preserve valid Python 2/3 text values, including Unicode URLs.
 - The template-facing Glass URL from `const.py` is also validated as an HTTPS URL with a host and no embedded credentials or fragments before the Stream page renders it into client-side image URLs.
 - All outbound provider calls must use `base.open_url` so the shared 10-second timeout remains enforced; do not add direct handler-level `urllib2.urlopen` calls.
 - The shared provider opener must refuse automatic redirects so private

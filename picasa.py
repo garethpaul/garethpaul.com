@@ -16,6 +16,11 @@ import json
 import const
 from base import Base, read_json_object, require_https_url
 
+try:
+  STRING_TYPES = (basestring,)
+except NameError:
+  STRING_TYPES = (str,)
+
 
 def picasa_entries(data):
   """Return Picasa entries only from the expected nested container shapes."""
@@ -35,7 +40,10 @@ def picasa_entry_src(entry):
   content = entry.get('content')
   if not isinstance(content, dict):
     return None
-  return content.get('src')
+  source = content.get('src')
+  if not isinstance(source, STRING_TYPES):
+    return None
+  return source
 
 
 class PicasaHandler(Base):
