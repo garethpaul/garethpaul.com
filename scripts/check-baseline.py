@@ -167,7 +167,8 @@ def main():
             and "lint build: check" in makefile_text
             and 'ROOT := $(abspath $(dir $(lastword $(MAKEFILE_LIST))))' in makefile_text
             and "PYTHON ?= python3" in makefile_text
-            and "override export PYTHONDONTWRITEBYTECODE := 1" in makefile_text
+            and "override PYTHONDONTWRITEBYTECODE := 1" in makefile_text
+            and "export PYTHONDONTWRITEBYTECODE" in makefile_text
             and makefile_text.count('PYTHON="$(PYTHON)" "$(ROOT)/scripts/check-python3.sh"') == 2
             and 'cd "$(ROOT)" && "$(PYTHON)" scripts/check-baseline.py' in makefile_text
             and makefile_text.count('cd "$(ROOT)" && "$(PYTHON)" -m unittest discover -s tests') == 2,
