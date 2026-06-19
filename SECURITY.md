@@ -49,6 +49,8 @@ authorization headers and private endpoint validation intact when changing this
 network boundary.
 Provider payloads are limited to 1 MiB and responses are closed after bounded
 reads so fast oversized services cannot consume unbounded handler memory.
+Provider JSON must decode to a top-level object through the shared parser before
+handlers access provider-controlled fields.
 GitHub Actions uses read-only repository permissions, immutable action pins,
 and disabled checkout credential persistence. Ordinary push and pull-request
 checks must remain verification-only and must not receive deployment secrets.

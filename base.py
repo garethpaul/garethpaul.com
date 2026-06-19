@@ -50,6 +50,19 @@ def read_url(url_or_request):
   return payload
 
 
+def decode_json_object(payload):
+  """Decode provider JSON and require a top-level object."""
+  payload = json.loads(payload)
+  if not isinstance(payload, dict):
+    raise ValueError("Provider JSON response must be an object")
+  return payload
+
+
+def read_json_object(url_or_request):
+  """Read bounded provider JSON and require a top-level object."""
+  return decode_json_object(read_url(url_or_request))
+
+
 class Base(webapp2.RequestHandler):
   def jsonify(self, payload):
     """
