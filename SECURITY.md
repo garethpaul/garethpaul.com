@@ -56,6 +56,9 @@ Provider requests must not follow automatic redirects because Python 2
 request. Redirect responses must fail closed before another host is contacted.
 Provider payloads are limited to 1 MiB and responses are closed after bounded
 reads so fast oversized services cannot consume unbounded handler memory.
+JSON-designated provider responses must declare `application/json` or an
+`application/*+json` media type before body reads; missing, malformed, text,
+and binary media types must fail closed and be closed unread.
 Provider JSON must decode to a top-level object through the shared parser before
 handlers access provider-controlled fields.
 GitHub Actions uses read-only repository permissions, immutable action pins,

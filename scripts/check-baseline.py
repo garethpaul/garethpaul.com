@@ -2,6 +2,7 @@
 from pathlib import Path
 import py_compile
 import re
+import subprocess
 import sys
 
 
@@ -26,6 +27,8 @@ PICASA_FEED_SHAPE_PLAN = ROOT / "docs/plans/2026-06-13-picasa-feed-container-sha
 INSTAGRAM_CONTAINER_SHAPE_PLAN = ROOT / "docs/plans/2026-06-13-instagram-container-shape.md"
 LOCATION_INDEPENDENT_MAKE_PLAN = ROOT / "docs/plans/2026-06-13-location-independent-make.md"
 PROVIDER_REDIRECT_PLAN = ROOT / "docs/plans/2026-06-14-provider-redirect-boundary.md"
+PROVIDER_JSON_MEDIA_PLAN = ROOT / "docs/plans/2026-06-14-provider-json-media-type-boundary.md"
+PROVIDER_JSON_MEDIA_CHECK = ROOT / "scripts/check-provider-json-media.py"
 BUG = ROOT / "docs/bugs/p2-python-access-token-in-url-query-c765eb4838c12375.md"
 
 
@@ -61,6 +64,7 @@ def main():
         "templates/stream.html",
         "tests/test_integration_guards.py",
         "tests/test_template_image_rendering.py",
+        "scripts/check-provider-json-media.py",
         "docs/plans/2026-06-08-legacy-api-baseline.md",
         "docs/plans/2026-06-09-private-endpoint-https.md",
         "docs/plans/2026-06-09-private-endpoint-host-validation.md",
@@ -81,6 +85,7 @@ def main():
         "docs/plans/2026-06-13-instagram-container-shape.md",
         "docs/plans/2026-06-13-location-independent-make.md",
         "docs/plans/2026-06-14-provider-redirect-boundary.md",
+        "docs/plans/2026-06-14-provider-json-media-type-boundary.md",
         "docs/bugs/p2-python-access-token-in-url-query-c765eb4838c12375.md",
     ]
 
@@ -232,7 +237,7 @@ jobs:
             and "PROVIDER_OPENER.open(url_or_request, timeout=HTTP_TIMEOUT_SECONDS)" in base_source,
             "base.py must enforce the shared no-redirect opener and 10-second provider timeout",
             failures)
-    require("MAX_PROVIDER_RESPONSE_BYTES = 1024 * 1024" in base_source and "def read_url(url_or_request):" in base_source and "response.read(MAX_PROVIDER_RESPONSE_BYTES + 1)" in base_source and "response.close()" in base_source and "len(payload) > MAX_PROVIDER_RESPONSE_BYTES" in base_source,
+    require("MAX_PROVIDER_RESPONSE_BYTES = 1024 * 1024" in base_source and "def read_url(url_or_request, expected_json=False):" in base_source and "response.read(MAX_PROVIDER_RESPONSE_BYTES + 1)" in base_source and "response.close()" in base_source and "len(payload) > MAX_PROVIDER_RESPONSE_BYTES" in base_source,
             "base.py must bound and close provider response bodies before JSON decoding",
             failures)
     provider_sources = [glass_source, instagram_source, map_source, picasa_source]
@@ -242,7 +247,7 @@ jobs:
     require("urllib2.urlopen(" not in base_source,
             "base.py must not bypass the no-redirect provider opener",
             failures)
-    require("def decode_json_object(payload):" in base_source and "json.loads(payload)" in base_source and "isinstance(payload, dict)" in base_source and "def read_json_object(url_or_request):" in base_source and "decode_json_object(read_url(url_or_request))" in base_source,
+    require("def decode_json_object(payload):" in base_source and "json.loads(payload)" in base_source and "isinstance(payload, dict)" in base_source and "def read_json_object(url_or_request):" in base_source and "decode_json_object(read_url(url_or_request, expected_json=True))" in base_source,
             "base.py must decode provider JSON through one top-level object guard",
             failures)
     require("decode_json_object(instagram_request(url))" in instagram_source
@@ -608,7 +613,16 @@ jobs:
             "Project guidance must document the provider redirect boundary",
             failures)
 
-    python_paths = sorted(ROOT.glob("*.py")) + sorted((ROOT / "tests").glob("*.py")) + [ROOT / "scripts/check-baseline.py"]
+    media_check = subprocess.run(
+        [sys.executable, str(PROVIDER_JSON_MEDIA_CHECK), "base.py", "instagram.py",
+         "tests/test_integration_guards.py", str(PROVIDER_JSON_MEDIA_PLAN)],
+        cwd=str(ROOT), capture_output=True, text=True,
+    )
+    require(media_check.returncode == 0,
+            media_check.stderr.strip() or "Provider JSON media type contract failed",
+            failures)
+
+    python_paths = sorted(ROOT.glob("*.py")) + sorted((ROOT / "tests").glob("*.py")) + [ROOT / "scripts/check-baseline.py", PROVIDER_JSON_MEDIA_CHECK]
     for path in python_paths:
         try:
             py_compile.compile(str(path), doraise=True)
