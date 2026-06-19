@@ -40,6 +40,8 @@
 - Detected references to Twitter, Google APIs, Instagram, Picasa, and Glass. Keep API keys, OAuth credentials, access tokens, private endpoints, and account-specific values in local configuration only.
 - Instagram access tokens must not be placed in URL query strings. The checked-in proxy strips token query values from pagination URLs and sends the token through an authorization header.
 - Instagram pagination URLs must remain on `https://api.instagram.com` before the proxy sends the bearer token header.
+- Normalize malformed Instagram pagination and media containers before
+  following or combining provider pages.
 - Map API responses cache by request path/query and weather/geocode URLs are built with structured HTTPS query encoding.
 - Private endpoints loaded from local `const.py`, including map location, Picasa, and Glass URLs, are validated as HTTPS URLs with hosts and no embedded credentials or fragments before the app fetches them.
 - Normalize malformed Picasa feed objects and non-list entry containers before

@@ -23,6 +23,7 @@ PROVIDER_RESPONSE_LIMIT_PLAN = ROOT / "docs/plans/2026-06-12-provider-response-s
 CI_SECURITY_PLAN = ROOT / "docs/plans/2026-06-12-ci-least-privilege-contract.md"
 PROVIDER_JSON_OBJECT_PLAN = ROOT / "docs/plans/2026-06-13-provider-json-object-shape.md"
 PICASA_FEED_SHAPE_PLAN = ROOT / "docs/plans/2026-06-13-picasa-feed-container-shape.md"
+INSTAGRAM_CONTAINER_SHAPE_PLAN = ROOT / "docs/plans/2026-06-13-instagram-container-shape.md"
 BUG = ROOT / "docs/bugs/p2-python-access-token-in-url-query-c765eb4838c12375.md"
 
 
@@ -75,6 +76,7 @@ def main():
         "docs/plans/2026-06-12-ci-least-privilege-contract.md",
         "docs/plans/2026-06-13-provider-json-object-shape.md",
         "docs/plans/2026-06-13-picasa-feed-container-shape.md",
+        "docs/plans/2026-06-13-instagram-container-shape.md",
         "docs/bugs/p2-python-access-token-in-url-query-c765eb4838c12375.md",
     ]
 
@@ -110,6 +112,7 @@ def main():
     ci_security_plan_text = CI_SECURITY_PLAN.read_text(encoding="utf-8") if CI_SECURITY_PLAN.exists() else ""
     provider_json_object_plan_text = PROVIDER_JSON_OBJECT_PLAN.read_text(encoding="utf-8") if PROVIDER_JSON_OBJECT_PLAN.exists() else ""
     picasa_feed_shape_plan_text = PICASA_FEED_SHAPE_PLAN.read_text(encoding="utf-8") if PICASA_FEED_SHAPE_PLAN.exists() else ""
+    instagram_container_shape_plan_text = INSTAGRAM_CONTAINER_SHAPE_PLAN.read_text(encoding="utf-8") if INSTAGRAM_CONTAINER_SHAPE_PLAN.exists() else ""
     app_yaml = read("app.yaml")
     makefile_text = read("Makefile")
     workflow_text = read(".github/workflows/check.yml")
@@ -233,6 +236,14 @@ jobs:
     require(all(".read()" not in source for source in provider_sources),
             "provider handlers must not perform unbounded response reads",
             failures)
+    require("def instagram_page(data):" in instagram_source
+            and "isinstance(pagination, dict)" in instagram_source
+            and "isinstance(media, list)" in instagram_source
+            and instagram_source.count("instagram_page(") == 3
+            and "next_url, d = instagram_page(data)" in instagram_source
+            and "_, second_page = instagram_page(data_2)" in instagram_source,
+            "instagram.py must normalize both pages before pagination and media concatenation",
+            failures)
     require('require_https_url(const.glass_url, "glass_url")' in base_source,
             "base.py must validate the template-facing Glass URL before rendering it",
             failures)
@@ -260,6 +271,11 @@ jobs:
     require("test_picasa_entries_returns_expected_entry_list" in integration_guard_tests
             and "test_picasa_entries_ignores_malformed_feed_containers" in integration_guard_tests,
             "integration characterization tests must cover valid and malformed Picasa feed containers",
+            failures)
+    require("test_instagram_page_returns_expected_pagination_and_media" in integration_guard_tests
+            and "test_instagram_page_ignores_malformed_containers" in integration_guard_tests
+            and "instagram.instagram_page" in integration_guard_tests,
+            "integration characterization tests must cover valid and malformed Instagram containers",
             failures)
     require("test_read_json_object_accepts_object_payload" in integration_guard_tests and "test_read_json_object_rejects_malformed_json" in integration_guard_tests and "test_read_json_object_rejects_non_object_json" in integration_guard_tests and "b'[]'" in integration_guard_tests and "b'null'" in integration_guard_tests,
             "integration characterization tests must cover accepted objects, malformed JSON, and non-object JSON values",
@@ -316,6 +332,9 @@ jobs:
     require("Instagram pagination URLs" in readme_text and "https://api.instagram.com" in readme_text,
             "README must document the Instagram pagination host guard",
             failures)
+    require("Malformed Instagram pagination objects" in readme_text and "non-list media containers" in readme_text,
+            "README must document the Instagram container-shape guard",
+            failures)
     require("shared 10-second" in readme_text and "base.open_url" in readme_text and "1 MiB" in readme_text and "base.read_url" in readme_text,
             "README must document the outbound provider timeout and response-size boundaries",
             failures)
@@ -353,6 +372,14 @@ jobs:
             failures)
     require("Instagram pagination host" in vision_text and "https://api.instagram.com" in vision_text,
             "VISION must describe the Instagram pagination host guard",
+            failures)
+    require("Malformed Instagram pagination objects" in vision_text and "non-list media containers" in vision_text,
+            "VISION must describe the Instagram container-shape guard",
+            failures)
+    require("Instagram pagination and media containers should be type-checked" in security_text
+            and "Normalize malformed Instagram pagination and media containers" in agents_text
+            and "Normalized malformed Instagram pagination and media containers" in changes_text,
+            "Project guidance must document the Instagram container-shape guard",
             failures)
     require("shared 10-second deadline" in vision_text and "urllib2.urlopen" in vision_text,
             "VISION must describe the outbound provider timeout boundary",
@@ -474,6 +501,28 @@ jobs:
             and all(item in picasa_feed_verification for item in picasa_feed_required_evidence)
             and re.search(r"\b(?:pending|todo|tbd|not run)\b", picasa_feed_verification, re.IGNORECASE) is None,
             "Picasa feed-container plan must record completed status and actual verification",
+            failures)
+    instagram_container_statuses = re.findall(
+        r"^status: .+$", instagram_container_shape_plan_text, flags=re.MULTILINE
+    )
+    instagram_container_sections = instagram_container_shape_plan_text.split(
+        "## Verification Completed\n", 1
+    )
+    instagram_container_verification = (
+        instagram_container_sections[1] if len(instagram_container_sections) == 2 else ""
+    )
+    instagram_container_required_evidence = (
+        "focused and all characterization tests passed",
+        "All four Make gates passed",
+        "pagination-object guard mutation failed",
+        "media-list guard mutation failed",
+        "second-page helper bypass mutation failed",
+        "hosted push, pull-request, and code-scanning snapshot",
+    )
+    require(instagram_container_statuses == ["status: completed"]
+            and all(item in instagram_container_verification for item in instagram_container_required_evidence)
+            and re.search(r"\b(?:pending|todo|tbd|not run)\b", instagram_container_verification, re.IGNORECASE) is None,
+            "Instagram container-shape plan must record completed status and actual verification",
             failures)
 
     python_paths = sorted(ROOT.glob("*.py")) + sorted((ROOT / "tests").glob("*.py")) + [ROOT / "scripts/check-baseline.py"]

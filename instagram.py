@@ -50,13 +50,24 @@ def instagram_json(url):
 	return decode_json_object(instagram_request(url))
 
 
+def instagram_page(data):
+	"""Return pagination and media only from the expected container shapes."""
+	pagination = data.get('pagination', {})
+	if not isinstance(pagination, dict):
+		pagination = {}
+	media = data.get('data', [])
+	if not isinstance(media, list):
+		media = []
+	return pagination.get('next_url'), media
+
+
 class InstagramHandler(Base):
 	def get(self):
 		self.response.headers['Content-Type'] = 'application/json'
 		data = instagram_json(INSTAGRAM_RECENT_MEDIA_URL)
-		next_url = data.get('pagination', {}).get('next_url')
-		d = data.get('data', [])
+		next_url, d = instagram_page(data)
 		if next_url:
 			data_2 = instagram_json(next_url)
-			d = d + data_2.get('data', [])
+			_, second_page = instagram_page(data_2)
+			d = d + second_page
 		self.response.out.write(json.dumps(d))
