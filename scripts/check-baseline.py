@@ -65,15 +65,18 @@ def main():
         "cache.py",
         "glass.py",
         "instagram.py",
+        "const.py.example",
         "main.py",
         "map.py",
         "picasa.py",
+        "settings.py",
         "templates/base.html",
         "templates/picture.html",
         "templates/stream.html",
         "tests/test_integration_guards.py",
         "tests/test_baseline_no_bytecode.py",
         "tests/test_make_gates_no_bytecode.py",
+        "tests/test_settings_loader.py",
         "tests/test_template_image_rendering.py",
         "scripts/check-provider-json-media.py",
         "scripts/check-python3.sh",
@@ -116,9 +119,11 @@ def main():
     main_source = read("main.py")
     map_source = read("map.py")
     picasa_source = read("picasa.py")
+    settings_source = read("settings.py")
     base_template = read("templates/base.html")
     picture_template = read("templates/picture.html")
     stream_template = read("templates/stream.html")
+    const_example_text = read("const.py.example")
     readme_text = read("README.md")
     security_text = read("SECURITY.md")
     vision_text = read("VISION.md")
@@ -151,6 +156,7 @@ def main():
     baseline_check_text = read("scripts/check-baseline.py")
     bytecode_test_text = read("tests/test_baseline_no_bytecode.py")
     make_bytecode_test_text = read("tests/test_make_gates_no_bytecode.py")
+    settings_test_text = read("tests/test_settings_loader.py")
     python_preflight_text = read("scripts/check-python3.sh")
     app_yaml = read("app.yaml")
     makefile_text = read("Makefile")
@@ -247,6 +253,43 @@ jobs:
     require("const.py" in gitignore_text and ".env" in gitignore_text,
             "private local configuration files must stay ignored",
             failures)
+    app_config_sources = (base_source, glass_source, instagram_source, map_source, picasa_source)
+    require(
+        all("import settings as const" in source for source in app_config_sources)
+        and all("\nimport const\n" not in source for source in app_config_sources),
+        "Application modules must load private configuration through settings.py, not direct const.py imports",
+        failures,
+    )
+    required_config_env_names = (
+        "GARETHPAUL_MAP_API_KEY",
+        "GARETHPAUL_GLASS_URL",
+        "GARETHPAUL_GLASS_API",
+        "GARETHPAUL_INSTAGRAM_ID",
+        "GARETHPAUL_INSTAGRAM_ACCESS_TOKEN",
+        "GARETHPAUL_PICASA_API",
+        "GARETHPAUL_MAP_API",
+        "GARETHPAUL_GEOCODE_KEY",
+    )
+    require(
+        "import const as local_const" in settings_source
+        and "def required_value(name, env_name):" in settings_source
+        and "os.environ.get(env_name)" in settings_source
+        and "const.py.example to const.py" in settings_source
+        and all(env_name in settings_source for env_name in required_config_env_names)
+        and all(env_name in readme_text for env_name in required_config_env_names)
+        and "replace-with-instagram-access-token" in const_example_text
+        and "replace-with-google-geocode-key" in const_example_text,
+        "settings.py must load documented private values from ignored const.py or GARETHPAUL_* environment variables",
+        failures,
+    )
+    require(
+        "test_loads_values_from_environment" in settings_test_text
+        and "test_local_const_values_take_precedence_over_environment" in settings_test_text
+        and "test_missing_value_raises_clear_setup_error" in settings_test_text
+        and "sys.path.insert(0, str(ROOT))" in settings_test_text,
+        "settings loader tests must cover environment fallback, local const precedence, and missing-value errors",
+        failures,
+    )
 
     require("access_token=" not in instagram_source,
             "instagram.py must not build access-token query strings",
@@ -472,7 +515,7 @@ jobs:
     require("shared 10-second" in readme_text and "base.open_url" in readme_text and "1 MiB" in readme_text and "base.read_url" in readme_text,
             "README must document the outbound provider timeout and response-size boundaries",
             failures)
-    require("const.py" in readme_text and "Python 2 App Engine" in readme_text,
+    require("settings.py" in readme_text and "const.py.example" in readme_text and "Python 2 App Engine" in readme_text,
             "README must document private config and legacy runtime expectations",
             failures)
     require("scripts/check-baseline.py" in vision_text and "tests/test_integration_guards.py" in vision_text and "make lint" in vision_text and "make test" in vision_text and "make build" in vision_text and "GitHub Actions" in vision_text and "access-token query strings" in vision_text,

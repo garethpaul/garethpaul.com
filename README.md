@@ -45,12 +45,22 @@ git clone https://github.com/garethpaul/garethpaul.com.git
 cd garethpaul.com
 ```
 
-The deployed app is a legacy Python 2 App Engine application. The private `const.py` file is intentionally not checked in; provide it only through local or platform-private configuration when reviving the app.
+The deployed app is a legacy Python 2 App Engine application. Configuration is
+loaded by `settings.py` from either the ignored local `const.py` file or
+`GARETHPAUL_*` environment variables. Copy `const.py.example` to `const.py` for
+local development, or provide private values through platform configuration
+when reviving the app.
 
 ## Running or Using the Project
 
 - App Engine routes are defined in `main.py` and configured by `app.yaml`.
-- Private integration settings such as map, geocode, Instagram, Glass, and Picasa endpoints belong in local `const.py` or platform configuration, not git.
+- Private integration settings such as map, geocode, Instagram, Glass, and
+  Picasa endpoints belong in local `const.py`, `GARETHPAUL_*` environment
+  variables, or platform configuration, not git.
+- Required environment names are `GARETHPAUL_MAP_API_KEY`,
+  `GARETHPAUL_GLASS_URL`, `GARETHPAUL_GLASS_API`, `GARETHPAUL_INSTAGRAM_ID`,
+  `GARETHPAUL_INSTAGRAM_ACCESS_TOKEN`, `GARETHPAUL_PICASA_API`,
+  `GARETHPAUL_MAP_API`, and `GARETHPAUL_GEOCODE_KEY`.
 
 ## Testing and Verification
 
@@ -64,10 +74,10 @@ make check
 ```
 
 The `lint` and `build` targets delegate to `make check`. The `test` target runs
-the dependency-free `tests/test_integration_guards.py` characterization tests.
-The `check` target runs both `scripts/check-baseline.py` and the
-characterization tests, verifies Python syntax, checks credential/cache
-guardrails, and does not require App Engine or private credentials. Every
+the dependency-free characterization tests under `tests/`. The `check` target
+runs both `scripts/check-baseline.py` and the characterization tests, verifies
+Python syntax, checks credential/cache guardrails, and does not require App
+Engine or private credentials. Every
 canonical Make target disables repository bytecode writes by default.
 
 The offline gate uses the `python3` command by default. Set
@@ -123,12 +133,12 @@ When the required SDK or runtime is unavailable, use static checks and source re
 - Non-text Instagram pagination URL values normalize to no next page while
   preserving valid media from the current response.
 - Map API responses cache by request path/query and weather/geocode URLs are built with structured HTTPS query encoding.
-- Private endpoints loaded from local `const.py`, including map location,
+- Private endpoints loaded through `settings.py`, including map location,
   Picasa, and Glass URLs, are validated as HTTPS URLs with hosts and no
   embedded credentials or fragments before the app fetches them.
-- The template-facing Glass URL from `const.py` is also validated as an HTTPS
-  URL with a host and no embedded credentials or fragments before the Stream
-  page renders it into client-side image URLs.
+- The template-facing Glass URL from `settings.py` is also validated as an
+  HTTPS URL with a host and no embedded credentials or fragments before the
+  Stream page renders it into client-side image URLs.
 - External template assets load through explicit HTTPS URLs so shared CSS,
   JavaScript, and analytics references do not inherit an insecure page scheme.
 - Empty Picasa feed responses return an empty image list instead of raising

@@ -43,6 +43,8 @@
 ## Safety and gotchas
 
 - Detected references to Twitter, Google APIs, Instagram, Picasa, and Glass. Keep API keys, OAuth credentials, access tokens, private endpoints, and account-specific values in local configuration only.
+- `settings.py` may load private values from ignored local `const.py` or
+  documented `GARETHPAUL_*` environment variables; do not commit real values.
 - Instagram access tokens must not be placed in URL query strings. The checked-in proxy strips token query values from pagination URLs and sends the token through an authorization header.
 - Instagram pagination URLs must remain on `https://api.instagram.com` before the proxy sends the bearer token header.
 - Normalize malformed Instagram pagination and media containers before
@@ -50,14 +52,14 @@
 - Non-text Instagram pagination URL values must normalize to no next page
   before the proxy attempts URL parsing.
 - Map API responses cache by request path/query and weather/geocode URLs are built with structured HTTPS query encoding.
-- Private endpoints loaded from local `const.py`, including map location, Picasa, and Glass URLs, are validated as HTTPS URLs with hosts and no embedded credentials or fragments before the app fetches them.
+- Private endpoints loaded through `settings.py`, including map location, Picasa, and Glass URLs, are validated as HTTPS URLs with hosts and no embedded credentials or fragments before the app fetches them.
 - Normalize malformed Picasa feed objects and non-list entry containers before
   nested lookup or iteration; preserve the empty image-list fallback.
 - Non-text Picasa image source values must normalize to no image before handler
   output; preserve valid Python 2/3 text values, including Unicode URLs.
 - Picasa image source URLs must pass `base.require_https_url` before handler
   output; keep this server policy separate from the browser's HTTPS filter.
-- The template-facing Glass URL from `const.py` is also validated as an HTTPS URL with a host and no embedded credentials or fragments before the Stream page renders it into client-side image URLs.
+- The template-facing Glass URL from `settings.py` is also validated as an HTTPS URL with a host and no embedded credentials or fragments before the Stream page renders it into client-side image URLs.
 - All outbound provider calls must use `base.open_url` so the shared 10-second timeout remains enforced; do not add direct handler-level `urllib2.urlopen` calls.
 - The shared provider opener must refuse automatic redirects so private
   requests and Instagram bearer headers are not forwarded to unvalidated URLs.

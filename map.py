@@ -19,7 +19,7 @@ from google.appengine.api import memcache
 import main
 import urllib
 import cache
-import const
+import settings as const
 from base import Base, read_json_object, require_https_url
 
 

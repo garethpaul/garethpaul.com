@@ -76,6 +76,9 @@
   raising while proxying album data.
 - Added an HTTPS-only guard for private map, Picasa, and Glass endpoint values
   loaded from local `const.py`.
+- Added `settings.py` so clean checkouts can load private configuration from
+  ignored `const.py` or documented `GARETHPAUL_*` environment variables with a
+  clear setup error.
 - Required those private endpoint URLs to include a host before fetching.
 - Rejected embedded credentials or fragments in private endpoint URLs before
   handlers or templates use them.

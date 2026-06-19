@@ -5,7 +5,7 @@ Main Handler for GoogleGlass
 
 There is an API that provides a list of images from Glass to be used specifically for this user.
 Note:
-  const.py provides the HTTPS endpoint.
+  settings.py provides the HTTPS endpoint.
 
 Todo:
   create a cache service to limit HTTP requests to the server.
@@ -13,7 +13,7 @@ Todo:
 """
 import main
 import json
-import const
+import settings as const
 from base import Base, read_json_object, require_https_url
 
 try:

@@ -9,7 +9,7 @@ BASE HANDLER FOR REQUESTS
 from google.appengine.api import memcache
 import webapp2
 import jinja2
-import const
+import settings as const
 import json
 import urlparse
 import urllib2
