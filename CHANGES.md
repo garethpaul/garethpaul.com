@@ -1,5 +1,10 @@
 # Changes
 
+## 2026-06-14
+
+- Rejected automatic provider redirects through one shared opener so validated
+  requests and Instagram bearer headers cannot be forwarded to another host.
+
 ## 2026-06-13
 
 - Made legacy API verification independent of the caller's working directory

@@ -18,6 +18,15 @@ import urllib2
 HTTP_TIMEOUT_SECONDS = 10
 MAX_PROVIDER_RESPONSE_BYTES = 1024 * 1024
 
+
+class RejectRedirectHandler(urllib2.HTTPRedirectHandler):
+  """Refuse provider redirects before request headers can be forwarded."""
+  def redirect_request(self, req, fp, code, msg, headers, newurl):
+    return None
+
+
+PROVIDER_OPENER = urllib2.build_opener(RejectRedirectHandler())
+
 JINJA_ENVIRONMENT = jinja2.Environment(
     loader=jinja2.FileSystemLoader("templates"),
     extensions=['jinja2.ext.autoescape'],
@@ -35,7 +44,7 @@ def require_https_url(url, label):
 
 def open_url(url_or_request):
   """Open an outbound request with the shared provider deadline."""
-  return urllib2.urlopen(url_or_request, timeout=HTTP_TIMEOUT_SECONDS)
+  return PROVIDER_OPENER.open(url_or_request, timeout=HTTP_TIMEOUT_SECONDS)
 
 
 def read_url(url_or_request):

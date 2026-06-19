@@ -34,6 +34,20 @@ class FakeResponse:
     self.closed = True
 
 
+class FakeHTTPRedirectHandler:
+  pass
+
+
+class FakeOpener:
+  def __init__(self, handlers=()):
+    self.handlers = handlers
+    self.open_calls = []
+
+  def open(self, request, timeout=None):
+    self.open_calls.append((request, timeout))
+    return FakeResponse()
+
+
 class FakeJinjaEnvironment:
   def __init__(self, *args, **kwargs):
     pass
@@ -55,6 +69,8 @@ def install_legacy_stubs():
 
   urllib2_module = types.ModuleType("urllib2")
   urllib2_module.Request = FakeRequest
+  urllib2_module.HTTPRedirectHandler = FakeHTTPRedirectHandler
+  urllib2_module.build_opener = lambda *handlers: FakeOpener(handlers)
   urllib2_module.urlopen = lambda request, timeout=None: FakeResponse()
   sys.modules["urllib2"] = urllib2_module
 
@@ -131,24 +147,39 @@ class PrivateEndpointGuardTest(unittest.TestCase):
           base.require_https_url(url, "map_api")
 
   def test_open_url_uses_shared_timeout(self):
-    captured = []
-    original_urlopen = base.urllib2.urlopen
-    self.addCleanup(setattr, base.urllib2, "urlopen", original_urlopen)
-
-    def fake_urlopen(request, timeout=None):
-      captured.append((request, timeout))
-      return FakeResponse()
-
-    base.urllib2.urlopen = fake_urlopen
+    opener = FakeOpener()
+    original_opener = base.PROVIDER_OPENER
+    self.addCleanup(setattr, base, "PROVIDER_OPENER", original_opener)
+    base.PROVIDER_OPENER = opener
 
     request = FakeRequest("https://example.com/provider")
     response = base.open_url(request)
 
     self.assertIsInstance(response, FakeResponse)
-    self.assertEqual(1, len(captured))
-    self.assertIs(request, captured[0][0])
-    self.assertEqual(base.HTTP_TIMEOUT_SECONDS, captured[0][1])
+    self.assertEqual(1, len(opener.open_calls))
+    self.assertIs(request, opener.open_calls[0][0])
+    self.assertEqual(base.HTTP_TIMEOUT_SECONDS, opener.open_calls[0][1])
     self.assertEqual(10, base.HTTP_TIMEOUT_SECONDS)
+
+  def test_provider_opener_installs_one_redirect_rejection_handler(self):
+    handlers = base.PROVIDER_OPENER.handlers
+
+    self.assertEqual(1, len(handlers))
+    self.assertIsInstance(handlers[0], base.RejectRedirectHandler)
+
+  def test_redirect_handler_refuses_redirect_request_creation(self):
+    handler = base.RejectRedirectHandler()
+
+    redirected = handler.redirect_request(
+      FakeRequest("https://api.instagram.com/v1/media"),
+      FakeResponse(),
+      302,
+      "Found",
+      {"Location": "https://evil.example/collect"},
+      "https://evil.example/collect",
+    )
+
+    self.assertIsNone(redirected)
 
   def test_read_url_accepts_exact_limit_and_closes_response(self):
     response = FakeResponse(b"x" * base.MAX_PROVIDER_RESPONSE_BYTES)
