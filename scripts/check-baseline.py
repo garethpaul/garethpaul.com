@@ -171,7 +171,7 @@ def main():
             failures)
     require(".PHONY: build check lint test" in makefile_text
             and "lint build: check" in makefile_text
-            and 'ROOT := $(abspath $(dir $(lastword $(MAKEFILE_LIST))))' in makefile_text
+            and 'override ROOT := $(abspath $(dir $(lastword $(MAKEFILE_LIST))))' in makefile_text
             and "PYTHON ?= python3" in makefile_text
             and "override PYTHONDONTWRITEBYTECODE := 1" in makefile_text
             and "export PYTHONDONTWRITEBYTECODE" in makefile_text
