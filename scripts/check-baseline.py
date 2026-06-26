@@ -35,6 +35,7 @@ PICASA_URL_BOUNDARY_PLAN = ROOT / "docs/plans/2026-06-17-002-fix-picasa-image-ur
 BYTECODE_FREE_SYNTAX_PLAN = ROOT / "docs/plans/2026-06-18-bytecode-free-syntax-check.md"
 BYTECODE_FREE_MAKE_PLAN = ROOT / "docs/plans/2026-06-18-bytecode-free-make-gates.md"
 GLASS_CACHE_PLAN = ROOT / "docs/plans/2026-06-26-glass-response-cache.md"
+MAP_CACHE_PLAN = ROOT / "docs/plans/2026-06-26-map-fixed-cache-key.md"
 BUG = ROOT / "docs/bugs/p2-python-access-token-in-url-query-c765eb4838c12375.md"
 
 
@@ -109,6 +110,7 @@ def main():
         "docs/plans/2026-06-18-bytecode-free-syntax-check.md",
         "docs/plans/2026-06-18-bytecode-free-make-gates.md",
         "docs/plans/2026-06-26-glass-response-cache.md",
+        "docs/plans/2026-06-26-map-fixed-cache-key.md",
         "docs/bugs/p2-python-access-token-in-url-query-c765eb4838c12375.md",
     ]
 
@@ -156,6 +158,7 @@ def main():
     bytecode_free_syntax_plan_text = BYTECODE_FREE_SYNTAX_PLAN.read_text(encoding="utf-8") if BYTECODE_FREE_SYNTAX_PLAN.exists() else ""
     bytecode_free_make_plan_text = BYTECODE_FREE_MAKE_PLAN.read_text(encoding="utf-8") if BYTECODE_FREE_MAKE_PLAN.exists() else ""
     glass_cache_plan_text = GLASS_CACHE_PLAN.read_text(encoding="utf-8") if GLASS_CACHE_PLAN.exists() else ""
+    map_cache_plan_text = MAP_CACHE_PLAN.read_text(encoding="utf-8") if MAP_CACHE_PLAN.exists() else ""
     baseline_check_text = read("scripts/check-baseline.py")
     bytecode_test_text = read("tests/test_baseline_no_bytecode.py")
     make_bytecode_test_text = read("tests/test_make_gates_no_bytecode.py")
@@ -322,8 +325,8 @@ jobs:
     require("urllib.urlencode" in map_source,
             "map.py should use structured query encoding for external API URLs",
             failures)
-    require("url_string" not in map_source and "cache_key = self.request.path_qs" in map_source,
-            "map.py must write memcache entries with a defined request cache key",
+    require("url_string" not in map_source and "cache_key = MAP_CACHE_KEY" in map_source,
+            "map.py must write memcache entries with the fixed map cache key",
             failures)
     require("memcache.set(key=cache_key" in map_source,
             "map.py must use the defined cache key when writing map responses",
@@ -475,6 +478,18 @@ jobs:
             and "test_glass_data_caches_successful_provider_payload_with_bounded_expiry" in integration_guard_tests
             and "test_glass_data_does_not_cache_provider_failures" in integration_guard_tests,
             "Glass cache hit and miss behavior must remain executable",
+            failures)
+    require('MAP_CACHE_KEY = "map-api-response"' in map_source
+            and "MAP_CACHE_SECONDS = 8000" in map_source
+            and "cache_key = MAP_CACHE_KEY" in map_source
+            and "self.request.path_qs" not in map_source
+            and "memcache.set(key=cache_key, value=data, time=MAP_CACHE_SECONDS)" in map_source,
+            "map.py must keep query-independent fixed-key cache identity and bounded expiry",
+            failures)
+    require("class MapCacheTest" in integration_guard_tests
+            and "test_map_cache_hit_uses_fixed_key_for_unrelated_queries" in integration_guard_tests
+            and "test_map_cache_miss_writes_fixed_key_with_existing_expiry" in integration_guard_tests,
+            "Map cache hit and miss behavior must reject query-derived identity",
             failures)
     require('href="//' not in base_template and 'src="//' not in base_template and "'//www.google-analytics.com/analytics.js'" not in base_template,
             "templates/base.html must not use protocol-relative external browser asset URLs",
@@ -1020,6 +1035,37 @@ jobs:
         and "Cached successful Glass API objects under a fixed non-secret key" in " ".join(changes_text.split())
         and "Glass API responses cache only successful validated objects" in " ".join(agents_text.split()),
         "Project guidance must preserve the bounded fixed-key Glass cache",
+        failures,
+    )
+    require(
+        "Map API responses cache under one fixed non-secret key" in " ".join(readme_text.split())
+        and "The map API cache must use one fixed non-secret key" in " ".join(security_text.split())
+        and "The map API should reuse one fixed non-secret cache entry" in " ".join(vision_text.split())
+        and "Replaced query-derived map cache entries with one fixed non-secret key" in " ".join(changes_text.split())
+        and "Map API responses cache under one fixed non-secret key" in " ".join(agents_text.split()),
+        "Project guidance must preserve query-independent map cache identity",
+        failures,
+    )
+    normalized_map_cache_plan = " ".join(map_cache_plan_text.split())
+    require(
+        re.findall(r"^status: .+$", map_cache_plan_text, flags=re.MULTILINE)
+        == ["status: completed"]
+        and all(
+            evidence in normalized_map_cache_plan
+            for evidence in (
+                "all 40 characterization tests",
+                "absolute external-directory `make check`",
+                "Four isolated hostile mutations were rejected",
+                "781e51099e332a2730b145adb955ec9d339836cd",
+                "28252751710",
+                "28252753514",
+                "28252753783",
+                "Actions, Python, and JavaScript/TypeScript",
+                "Python 3.10, 3.12, and 3.14",
+                "No live provider request or credential was used",
+            )
+        ),
+        "Map fixed-key plan must preserve completed local and hosted evidence",
         failures,
     )
 

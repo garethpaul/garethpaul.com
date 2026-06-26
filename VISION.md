@@ -69,7 +69,10 @@ configuration and avoid publishing private data accidentally.
 Current integration guardrails keep Instagram access tokens out of URL query
 strings, require Instagram pagination host values to stay on
 `https://api.instagram.com`, keep checked-in weather/geocode URL construction on
-HTTPS, and verify the map API writes cache entries with a defined request key.
+HTTPS, and verify the map API writes cache entries with one fixed request key.
+The map API should reuse one fixed non-secret cache entry for its
+query-independent payload so arbitrary browser queries cannot force upstream
+work or fragment shared App Engine cache capacity.
 The Glass proxy should reuse successful validated provider objects for five
 minutes under one fixed non-secret key so browser query strings cannot fragment
 the cache and private endpoint values never become cache keys.

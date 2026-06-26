@@ -72,6 +72,10 @@ JSON-designated provider responses must declare `application/json` or an
 and binary media types must fail closed and be closed unread.
 Provider JSON must decode to a top-level object through the shared parser before
 handlers access provider-controlled fields.
+The map API cache must use one fixed non-secret key because request queries do
+not affect its payload; query-controlled keys would let callers force private
+provider requests and distinct cache entries. Preserve the existing bounded
+expiration.
 The Glass API cache must use a fixed non-secret key rather than browser query
 strings or the configured private endpoint, and it must cache only successful
 validated objects for a bounded five-minute interval.
