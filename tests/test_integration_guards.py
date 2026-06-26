@@ -134,6 +134,7 @@ def load_module(name, relative_path):
 
 install_legacy_stubs()
 base = load_module("base", "base.py")
+glass = load_module("glass", "glass.py")
 instagram = load_module("instagram", "instagram.py")
 picasa = load_module("picasa", "picasa.py")
 
@@ -292,6 +293,66 @@ class PrivateEndpointGuardTest(unittest.TestCase):
         base.read_url = lambda request, expected_json=False, payload=payload: payload
         with self.assertRaises(ValueError):
           base.read_json_object("https://example.com/provider")
+
+
+class GlassCacheTest(unittest.TestCase):
+  def setUp(self):
+    self.memcache = sys.modules["google.appengine.api.memcache"]
+    self.original_get = getattr(self.memcache, "get", None)
+    self.original_set = getattr(self.memcache, "set", None)
+    self.original_read_json_object = glass.read_json_object
+    self.addCleanup(self.restore_dependencies)
+
+  def restore_dependencies(self):
+    if self.original_get is None:
+      if hasattr(self.memcache, "get"):
+        delattr(self.memcache, "get")
+    else:
+      self.memcache.get = self.original_get
+    if self.original_set is None:
+      if hasattr(self.memcache, "set"):
+        delattr(self.memcache, "set")
+    else:
+      self.memcache.set = self.original_set
+    glass.read_json_object = self.original_read_json_object
+
+  def test_glass_data_returns_cached_payload_without_fetching_provider(self):
+    cached = {"images": ["cached"]}
+    cache_reads = []
+    self.memcache.get = lambda key: cache_reads.append(key) or cached
+    glass.read_json_object = lambda url: self.fail("provider fetch must not run")
+
+    self.assertEqual(cached, glass.get_data())
+    self.assertEqual([glass.GLASS_CACHE_KEY], cache_reads)
+
+  def test_glass_data_caches_successful_provider_payload_with_bounded_expiry(self):
+    payload = {"images": ["fresh"]}
+    cache_writes = []
+    self.memcache.get = lambda key: None
+    self.memcache.set = lambda **kwargs: cache_writes.append(kwargs)
+    glass.read_json_object = lambda url: payload
+
+    self.assertEqual(payload, glass.get_data())
+    self.assertEqual([{
+      "key": glass.GLASS_CACHE_KEY,
+      "value": payload,
+      "time": glass.GLASS_CACHE_SECONDS,
+    }], cache_writes)
+    self.assertGreater(glass.GLASS_CACHE_SECONDS, 0)
+
+  def test_glass_data_does_not_cache_provider_failures(self):
+    cache_writes = []
+    self.memcache.get = lambda key: None
+    self.memcache.set = lambda **kwargs: cache_writes.append(kwargs)
+
+    def fail_provider(url):
+      raise ValueError("invalid provider response")
+
+    glass.read_json_object = fail_provider
+
+    with self.assertRaises(ValueError):
+      glass.get_data()
+    self.assertEqual([], cache_writes)
 
 
 class InstagramGuardTest(unittest.TestCase):

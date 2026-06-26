@@ -34,6 +34,7 @@ PICASA_SOURCE_SHAPE_PLAN = ROOT / "docs/plans/2026-06-17-picasa-image-source-sha
 PICASA_URL_BOUNDARY_PLAN = ROOT / "docs/plans/2026-06-17-002-fix-picasa-image-url-boundary-plan.md"
 BYTECODE_FREE_SYNTAX_PLAN = ROOT / "docs/plans/2026-06-18-bytecode-free-syntax-check.md"
 BYTECODE_FREE_MAKE_PLAN = ROOT / "docs/plans/2026-06-18-bytecode-free-make-gates.md"
+GLASS_CACHE_PLAN = ROOT / "docs/plans/2026-06-26-glass-response-cache.md"
 BUG = ROOT / "docs/bugs/p2-python-access-token-in-url-query-c765eb4838c12375.md"
 
 
@@ -107,6 +108,7 @@ def main():
         "docs/plans/2026-06-17-002-fix-picasa-image-url-boundary-plan.md",
         "docs/plans/2026-06-18-bytecode-free-syntax-check.md",
         "docs/plans/2026-06-18-bytecode-free-make-gates.md",
+        "docs/plans/2026-06-26-glass-response-cache.md",
         "docs/bugs/p2-python-access-token-in-url-query-c765eb4838c12375.md",
     ]
 
@@ -153,6 +155,7 @@ def main():
     picasa_url_boundary_plan_text = PICASA_URL_BOUNDARY_PLAN.read_text(encoding="utf-8") if PICASA_URL_BOUNDARY_PLAN.exists() else ""
     bytecode_free_syntax_plan_text = BYTECODE_FREE_SYNTAX_PLAN.read_text(encoding="utf-8") if BYTECODE_FREE_SYNTAX_PLAN.exists() else ""
     bytecode_free_make_plan_text = BYTECODE_FREE_MAKE_PLAN.read_text(encoding="utf-8") if BYTECODE_FREE_MAKE_PLAN.exists() else ""
+    glass_cache_plan_text = GLASS_CACHE_PLAN.read_text(encoding="utf-8") if GLASS_CACHE_PLAN.exists() else ""
     baseline_check_text = read("scripts/check-baseline.py")
     bytecode_test_text = read("tests/test_baseline_no_bytecode.py")
     make_bytecode_test_text = read("tests/test_make_gates_no_bytecode.py")
@@ -459,6 +462,19 @@ jobs:
             failures)
     require('require_https_url(const.glass_api, "glass_api")' in glass_source,
             "glass.py must validate the private Glass endpoint before fetching it",
+            failures)
+    require('GLASS_CACHE_KEY = "glass-api-response"' in glass_source
+            and "GLASS_CACHE_SECONDS = 300" in glass_source
+            and "cache.check(GLASS_CACHE_KEY)" in glass_source
+            and "memcache.set(key=GLASS_CACHE_KEY, value=data, time=GLASS_CACHE_SECONDS)" in glass_source
+            and "data = get_data()" in glass_source,
+            "glass.py must cache successful responses under the fixed bounded cache contract",
+            failures)
+    require("class GlassCacheTest" in integration_guard_tests
+            and "test_glass_data_returns_cached_payload_without_fetching_provider" in integration_guard_tests
+            and "test_glass_data_caches_successful_provider_payload_with_bounded_expiry" in integration_guard_tests
+            and "test_glass_data_does_not_cache_provider_failures" in integration_guard_tests,
+            "Glass cache hit and miss behavior must remain executable",
             failures)
     require('href="//' not in base_template and 'src="//' not in base_template and "'//www.google-analytics.com/analytics.js'" not in base_template,
             "templates/base.html must not use protocol-relative external browser asset URLs",
@@ -989,6 +1005,21 @@ jobs:
         and "Made every canonical Make gate disable repository Python bytecode writes" in " ".join(changes_text.split())
         and "Canonical Make gates must disable Python bytecode writes" in " ".join(agents_text.split()),
         "Project guidance must preserve bytecode-free canonical Make gates",
+        failures,
+    )
+    require(
+        re.findall(r"^status: .+$", glass_cache_plan_text, flags=re.MULTILINE)
+        == ["status: completed"],
+        "Glass response cache plan must be marked completed exactly once",
+        failures,
+    )
+    require(
+        "Glass API responses cache successful validated objects for five minutes" in " ".join(readme_text.split())
+        and "The Glass API cache must use a fixed non-secret key" in " ".join(security_text.split())
+        and "The Glass proxy should reuse successful validated provider objects" in " ".join(vision_text.split())
+        and "Cached successful Glass API objects under a fixed non-secret key" in " ".join(changes_text.split())
+        and "Glass API responses cache only successful validated objects" in " ".join(agents_text.split()),
+        "Project guidance must preserve the bounded fixed-key Glass cache",
         failures,
     )
 

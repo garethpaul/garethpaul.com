@@ -133,6 +133,8 @@ When the required SDK or runtime is unavailable, use static checks and source re
 - Non-text Instagram pagination URL values normalize to no next page while
   preserving valid media from the current response.
 - Map API responses cache by request path/query and weather/geocode URLs are built with structured HTTPS query encoding.
+- Glass API responses cache successful validated objects for five minutes
+  under one fixed non-secret key; browser query strings do not create entries.
 - Private endpoints loaded through `settings.py`, including map location,
   Picasa, and Glass URLs, are validated as HTTPS URLs with hosts and no
   embedded credentials or fragments before the app fetches them.

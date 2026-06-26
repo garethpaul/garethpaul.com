@@ -72,6 +72,9 @@ JSON-designated provider responses must declare `application/json` or an
 and binary media types must fail closed and be closed unread.
 Provider JSON must decode to a top-level object through the shared parser before
 handlers access provider-controlled fields.
+The Glass API cache must use a fixed non-secret key rather than browser query
+strings or the configured private endpoint, and it must cache only successful
+validated objects for a bounded five-minute interval.
 GitHub Actions uses read-only repository permissions, immutable action pins,
 and disabled checkout credential persistence. Ordinary push and pull-request
 checks must remain verification-only and must not receive deployment secrets.
