@@ -70,6 +70,9 @@ Current integration guardrails keep Instagram access tokens out of URL query
 strings, require Instagram pagination host values to stay on
 `https://api.instagram.com`, keep checked-in weather/geocode URL construction on
 HTTPS, and verify the map API writes cache entries with a defined request key.
+The Glass proxy should reuse successful validated provider objects for five
+minutes under one fixed non-secret key so browser query strings cannot fragment
+the cache and private endpoint values never become cache keys.
 Malformed Instagram pagination objects and non-list media containers should
 normalize safely before either provider page is combined.
 Non-text Instagram pagination URL values should normalize to no next page while

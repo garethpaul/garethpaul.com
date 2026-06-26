@@ -1,5 +1,10 @@
 # Changes
 
+## 2026-06-26
+
+- Cached successful Glass API objects under a fixed non-secret key for five
+  minutes, avoiding one private upstream request per browser refresh.
+
 ## 2026-06-18
 
 - Made every canonical Make gate disable repository Python bytecode writes by
