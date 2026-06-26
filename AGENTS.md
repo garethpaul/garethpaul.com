@@ -51,7 +51,9 @@
   following or combining provider pages.
 - Non-text Instagram pagination URL values must normalize to no next page
   before the proxy attempts URL parsing.
-- Map API responses cache by request path/query and weather/geocode URLs are built with structured HTTPS query encoding.
+- Map API responses cache under one fixed non-secret key because browser query
+  parameters do not affect the payload; do not restore request-derived cache
+  keys. Weather/geocode URLs use structured HTTPS query encoding.
 - Glass API responses cache only successful validated objects for five minutes
   under a fixed non-secret key; do not key this cache by browser queries or the
   configured private endpoint.

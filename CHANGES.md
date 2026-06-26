@@ -1,5 +1,27 @@
 # Changes
 
+## 2026-06-26 09:56:39 PDT
+
+- Priority: security / upstream request amplification.
+- Replaced query-derived map cache entries with one fixed non-secret key,
+  preventing arbitrary browser queries from bypassing the cache and repeating
+  three private provider requests.
+- Preserved the existing 8,000-second expiration and map response payload.
+- Files: `map.py`, `tests/test_integration_guards.py`,
+  `scripts/check-baseline.py`,
+  `docs/plans/2026-06-26-map-fixed-cache-key.md`, and synchronized repository
+  guidance.
+- Tests: focused cache hit/miss regressions, all 40 characterization tests,
+  every root Make alias, the absolute external Make gate, in-memory syntax
+  compilation, and four isolated hostile mutations pass locally.
+- Findings: no open pull requests or issues overlap this change; only stale
+  June 8-9 remote branches remain.
+- Blockers: Python 2.7 is unavailable locally; the hosted Python matrix is the
+  authoritative cross-runtime evidence. Codex review authentication may be
+  unavailable and will be skipped after one HTTP 401 attempt.
+- Next action: push the implementation, record exact hosted matrix and CodeQL
+  evidence, then merge only that verified head.
+
 ## 2026-06-26
 
 - Cached successful Glass API objects under a fixed non-secret key for five

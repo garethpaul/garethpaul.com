@@ -22,6 +22,9 @@ import cache
 import settings as const
 from base import Base, read_json_object, require_https_url
 
+MAP_CACHE_KEY = "map-api-response"
+MAP_CACHE_SECONDS = 8000
+
 
 def get_weather(lat,lng):
 	"""
@@ -103,13 +106,13 @@ class ApiHandler(Base):
 		Function: for a get request for the Map.py api e.g. /api/map
 		Returns: json data
 		"""
-		cache_key = self.request.path_qs
+		cache_key = MAP_CACHE_KEY
 		cachi = cache.check(cache_key)
 		if cachi is None:
 			# get_data
 			data = get_data()
 			# set cache
-			memcache.set(key=cache_key, value=data, time=8000)
+			memcache.set(key=cache_key, value=data, time=MAP_CACHE_SECONDS)
 			self.jsonify(data)
 		else:
 			self.jsonify(cachi)

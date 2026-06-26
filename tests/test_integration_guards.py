@@ -137,6 +137,7 @@ base = load_module("base", "base.py")
 glass = load_module("glass", "glass.py")
 instagram = load_module("instagram", "instagram.py")
 picasa = load_module("picasa", "picasa.py")
+site_map = load_module("site_map", "map.py")
 
 
 class PrivateEndpointGuardTest(unittest.TestCase):
@@ -353,6 +354,61 @@ class GlassCacheTest(unittest.TestCase):
     with self.assertRaises(ValueError):
       glass.get_data()
     self.assertEqual([], cache_writes)
+
+
+class MapCacheTest(unittest.TestCase):
+  def setUp(self):
+    self.memcache = sys.modules["google.appengine.api.memcache"]
+    self.original_get = getattr(self.memcache, "get", None)
+    self.original_set = getattr(self.memcache, "set", None)
+    self.original_get_data = site_map.get_data
+    self.addCleanup(self.restore_dependencies)
+
+  def restore_dependencies(self):
+    if self.original_get is None:
+      if hasattr(self.memcache, "get"):
+        delattr(self.memcache, "get")
+    else:
+      self.memcache.get = self.original_get
+    if self.original_set is None:
+      if hasattr(self.memcache, "set"):
+        delattr(self.memcache, "set")
+    else:
+      self.memcache.set = self.original_set
+    site_map.get_data = self.original_get_data
+
+  def invoke_handler(self, path_qs):
+    payloads = []
+    handler = site_map.ApiHandler()
+    handler.request = types.SimpleNamespace(path_qs=path_qs)
+    handler.jsonify = payloads.append
+    handler.get()
+    return payloads
+
+  def test_map_cache_hit_uses_fixed_key_for_unrelated_queries(self):
+    cached = {"status": "ok"}
+    cache_reads = []
+    self.memcache.get = lambda key: cache_reads.append(key) or cached
+    site_map.get_data = lambda: self.fail("provider fetch must not run")
+
+    self.assertEqual([cached], self.invoke_handler("/api/map?nonce=one"))
+    self.assertEqual([cached], self.invoke_handler("/api/map?nonce=two"))
+    self.assertEqual([site_map.MAP_CACHE_KEY, site_map.MAP_CACHE_KEY], cache_reads)
+
+  def test_map_cache_miss_writes_fixed_key_with_existing_expiry(self):
+    payload = {"status": "ok", "lat": "30.27", "lng": "-97.74"}
+    cache_writes = []
+    self.memcache.get = lambda key: None
+    self.memcache.set = lambda **kwargs: cache_writes.append(kwargs)
+    site_map.get_data = lambda: payload
+
+    self.assertEqual([payload], self.invoke_handler("/api/map?bypass=cache"))
+    self.assertEqual([{
+      "key": site_map.MAP_CACHE_KEY,
+      "value": payload,
+      "time": site_map.MAP_CACHE_SECONDS,
+    }], cache_writes)
+    self.assertEqual(8000, site_map.MAP_CACHE_SECONDS)
 
 
 class InstagramGuardTest(unittest.TestCase):
