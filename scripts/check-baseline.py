@@ -35,6 +35,7 @@ PICASA_URL_BOUNDARY_PLAN = ROOT / "docs/plans/2026-06-17-002-fix-picasa-image-ur
 BYTECODE_FREE_SYNTAX_PLAN = ROOT / "docs/plans/2026-06-18-bytecode-free-syntax-check.md"
 BYTECODE_FREE_MAKE_PLAN = ROOT / "docs/plans/2026-06-18-bytecode-free-make-gates.md"
 GLASS_CACHE_PLAN = ROOT / "docs/plans/2026-06-26-glass-response-cache.md"
+MAP_CACHE_PLAN = ROOT / "docs/plans/2026-06-26-map-fixed-cache-key.md"
 BUG = ROOT / "docs/bugs/p2-python-access-token-in-url-query-c765eb4838c12375.md"
 
 
@@ -157,6 +158,7 @@ def main():
     bytecode_free_syntax_plan_text = BYTECODE_FREE_SYNTAX_PLAN.read_text(encoding="utf-8") if BYTECODE_FREE_SYNTAX_PLAN.exists() else ""
     bytecode_free_make_plan_text = BYTECODE_FREE_MAKE_PLAN.read_text(encoding="utf-8") if BYTECODE_FREE_MAKE_PLAN.exists() else ""
     glass_cache_plan_text = GLASS_CACHE_PLAN.read_text(encoding="utf-8") if GLASS_CACHE_PLAN.exists() else ""
+    map_cache_plan_text = MAP_CACHE_PLAN.read_text(encoding="utf-8") if MAP_CACHE_PLAN.exists() else ""
     baseline_check_text = read("scripts/check-baseline.py")
     bytecode_test_text = read("tests/test_baseline_no_bytecode.py")
     make_bytecode_test_text = read("tests/test_make_gates_no_bytecode.py")
@@ -1042,6 +1044,28 @@ jobs:
         and "Replaced query-derived map cache entries with one fixed non-secret key" in " ".join(changes_text.split())
         and "Map API responses cache under one fixed non-secret key" in " ".join(agents_text.split()),
         "Project guidance must preserve query-independent map cache identity",
+        failures,
+    )
+    normalized_map_cache_plan = " ".join(map_cache_plan_text.split())
+    require(
+        re.findall(r"^status: .+$", map_cache_plan_text, flags=re.MULTILINE)
+        == ["status: completed"]
+        and all(
+            evidence in normalized_map_cache_plan
+            for evidence in (
+                "all 40 characterization tests",
+                "absolute external-directory `make check`",
+                "Four isolated hostile mutations were rejected",
+                "781e51099e332a2730b145adb955ec9d339836cd",
+                "28252751710",
+                "28252753514",
+                "28252753783",
+                "Actions, Python, and JavaScript/TypeScript",
+                "Python 3.10, 3.12, and 3.14",
+                "No live provider request or credential was used",
+            )
+        ),
+        "Map fixed-key plan must preserve completed local and hosted evidence",
         failures,
     )
 

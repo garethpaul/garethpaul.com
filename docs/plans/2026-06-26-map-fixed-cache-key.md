@@ -1,6 +1,6 @@
 # Map Fixed Cache Key
 
-status: active
+status: completed
 
 ## Goal
 
@@ -36,3 +36,20 @@ allows callers to bypass the existing cache cheaply.
 
 - Google Cloud legacy memcache overview:
   https://docs.cloud.google.com/appengine/docs/legacy/standard/python/memcache
+
+## Verification Completed
+
+- The focused map cache hit and miss regressions and all 40 characterization
+  tests passed.
+- Every repository-root Make alias and the absolute external-directory
+  `make check` gate passed without creating Python bytecode artifacts.
+- In-memory compilation passed for `map.py`, the integration regressions, and
+  the baseline checker; Python 2.7 was unavailable locally.
+- Four isolated hostile mutations were rejected: query-derived identity,
+  private-endpoint identity, an unbounded expiration, and removed security
+  guidance.
+- Implementation commit `781e51099e332a2730b145adb955ec9d339836cd`
+  passed push Check run `28252751710`, pull-request Check run `28252753514`,
+  and CodeQL run `28252753783` for Actions, Python, and JavaScript/TypeScript.
+- Both hosted Check runs completed successfully for Python 3.10, 3.12, and
+  3.14. No live provider request or credential was used.

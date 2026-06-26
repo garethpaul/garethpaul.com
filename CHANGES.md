@@ -13,14 +13,16 @@
   guidance.
 - Tests: focused cache hit/miss regressions, all 40 characterization tests,
   every root Make alias, the absolute external Make gate, in-memory syntax
-  compilation, and four isolated hostile mutations pass locally.
+  compilation, and four isolated hostile mutations pass locally. Both hosted
+  Python 3.10/3.12/3.14 matrices and CodeQL for Actions, Python, and
+  JavaScript/TypeScript pass on implementation commit `781e510`.
 - Findings: no open pull requests or issues overlap this change; only stale
   June 8-9 remote branches remain.
 - Blockers: Python 2.7 is unavailable locally; the hosted Python matrix is the
   authoritative cross-runtime evidence. Codex review authentication may be
   unavailable and will be skipped after one HTTP 401 attempt.
-- Next action: push the implementation, record exact hosted matrix and CodeQL
-  evidence, then merge only that verified head.
+- Next action: push the completed evidence contract and merge only its exact
+  hosted-green head.
 
 ## 2026-06-26
 
