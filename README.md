@@ -88,7 +88,7 @@ deployment remains Python 2.
 
 Use the absolute Makefile path to run the same gates from another working
 directory. Every Make recipe enters the repository root before launching the
-checker or unittest discovery.
+checker or unittest discovery, including when the checkout path contains spaces.
 
 All checked-in outbound provider requests use the shared 10-second
 `base.open_url` deadline. This bounds stalled Instagram, Glass, Picasa,

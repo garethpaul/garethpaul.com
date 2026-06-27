@@ -46,6 +46,41 @@ class MakeGateNoBytecodeTest(unittest.TestCase):
             )
             self.assertEqual([], bytecode_paths)
 
+    def test_absolute_makefile_path_with_spaces_runs_full_gate(self):
+        if os.environ.get(CHILD_MARKER) == "1":
+            self.skipTest("nested gate invocation")
+
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            copied_root = Path(temporary_directory) / "repository with spaces"
+            caller_root = Path(temporary_directory) / "external caller"
+            shutil.copytree(
+                ROOT,
+                copied_root,
+                ignore=shutil.ignore_patterns(".git", "__pycache__", "*.pyc", "*.pyo"),
+            )
+            caller_root.mkdir()
+
+            env = os.environ.copy()
+            env.pop("PYTHONDONTWRITEBYTECODE", None)
+            env.pop("PYTHONPYCACHEPREFIX", None)
+            env[CHILD_MARKER] = "1"
+            result = subprocess.run(
+                ["make", "-f", str(copied_root / "Makefile"), "check"],
+                cwd=str(caller_root),
+                env=env,
+                capture_output=True,
+                text=True,
+                timeout=60,
+            )
+
+            self.assertEqual(0, result.returncode, result.stderr)
+            bytecode_paths = sorted(
+                path.relative_to(copied_root)
+                for path in copied_root.rglob("*")
+                if path.name == "__pycache__" or path.suffix in {".pyc", ".pyo"}
+            )
+            self.assertEqual([], bytecode_paths)
+
 
 if __name__ == "__main__":
     unittest.main()

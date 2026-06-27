@@ -1,5 +1,13 @@
 # Changes
 
+## 2026-06-27
+
+- Preserved the repository root when an absolute Makefile is loaded from
+  spaced checkout paths.
+- Added a full-gate regression that invokes the absolute Makefile from an
+  external directory under a spaced checkout path and verifies no repository
+  bytecode artifacts are written.
+
 ## 2026-06-26 09:56:39 PDT
 
 - Priority: security / upstream request amplification.

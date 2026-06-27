@@ -177,7 +177,11 @@ def main():
             failures)
     require(".PHONY: build check lint test" in makefile_text
             and "lint build: check" in makefile_text
-            and 'override ROOT := $(abspath $(dir $(lastword $(MAKEFILE_LIST))))' in makefile_text
+            and "override empty :=" in makefile_text
+            and "override space := $(empty) $(empty)" in makefile_text
+            and "override makefile_space := __GARETHPAUL_MAKEFILE_SPACE__" in makefile_text
+            and "override encoded_makefile_list := $(patsubst $(makefile_space)%,%,$(subst $(space),$(makefile_space),$(MAKEFILE_LIST)))" in makefile_text
+            and 'override ROOT := $(subst $(makefile_space),$(space),$(abspath $(dir $(lastword $(encoded_makefile_list)))))' in makefile_text
             and "PYTHON ?= python3" in makefile_text
             and "override PYTHONDONTWRITEBYTECODE := 1" in makefile_text
             and "export PYTHONDONTWRITEBYTECODE" in makefile_text
@@ -186,6 +190,13 @@ def main():
             and makefile_text.count('cd "$(ROOT)" && "$(PYTHON)" -m unittest discover -s tests') == 2,
             "Makefile must expose lint, test, build, and check gate targets with characterization tests",
             failures)
+    require(
+        '"repository with spaces"' in make_bytecode_test_text
+        and '["make", "-f", str(copied_root / "Makefile"), "check"]' in make_bytecode_test_text
+        and 'cwd=str(caller_root)' in make_bytecode_test_text,
+        "Make verification must cover an absolute Makefile path inside a spaced checkout",
+        failures,
+    )
     require(
         'PYTHON=${PYTHON:-python3}' in python_preflight_text
         and 'command -v "$PYTHON"' in python_preflight_text
@@ -856,7 +867,9 @@ jobs:
             "Location-independent Make plan must record completed status and actual verification",
             failures)
     require("absolute Makefile path" in readme_text
-            and "Made legacy API verification independent" in changes_text,
+            and "checkout path contains spaces" in readme_text
+            and "Made legacy API verification independent" in changes_text
+            and "spaced checkout paths" in changes_text,
             "README and CHANGES must document location-independent Make verification",
             failures)
     provider_redirect_statuses = re.findall(
