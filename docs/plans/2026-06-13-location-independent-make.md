@@ -22,6 +22,8 @@ credential, timeout, response-size, schema, template, and workflow behavior.
 ## Requirements
 
 - Derive the repository root from `MAKEFILE_LIST`.
+- Preserve spaces in the loaded Makefile path before Make list functions select
+  the final file.
 - Run checker and unittest commands from that repository root for every Make
   gate.
 - Add static contracts for the rooted Makefile, completed plan, external-run
@@ -36,6 +38,7 @@ credential, timeout, response-size, schema, template, and workflow behavior.
 - Run focused and full characterization tests, `scripts/check-baseline.py`, and
   all four Make gates at repository root.
 - Run all four Make gates from /tmp through the absolute Makefile path.
+- Run the full gate through an absolute Makefile path inside a spaced checkout.
 - Reject isolated caller-relative root, checker, unittest, plan-status,
   plan-evidence, and documentation mutations.
 - Run Python 3 and Python 2 production-module compilation, workflow parsing,
@@ -52,6 +55,8 @@ credential, timeout, response-size, schema, template, and workflow behavior.
 
 - Derived the repository root from the loaded Makefile and ran checker and
   unittest commands from that root for every gate.
+- Protected spaces with a sentinel while selecting and resolving the loaded
+  Makefile, then restored them in the final repository root.
 - Extended the Python baseline with rooted-Makefile, completed-plan,
   external-run, and synchronized-guidance contracts.
 - Preserved production Python, templates, dependencies, private configuration,
@@ -62,6 +67,8 @@ credential, timeout, response-size, schema, template, and workflow behavior.
 - The focused integration file ran 18 tests and the complete suite ran 20 tests.
 - All four Make gates (`make lint`, `make test`, `make build`, and `make check`)
   passed at repository root and from /tmp through the absolute Makefile path.
+- The full gate passed from an external directory through an absolute Makefile
+  path inside a spaced checkout.
 - The root-derivation mutation failed.
 - The checker-command mutation failed.
 - The unittest-command mutation failed.
